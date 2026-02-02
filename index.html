@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocolo 1% - Sistema de Maestria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --bg-input: #2d2d2d;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --gold: #ffd700;
+            --accent: #0d6efd;
+        }
+
+        body {
+            background-color: var(--bg-body) !important;
+            color: var(--text-main) !important;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, p, span, div, label { color: var(--text-main); }
+        .text-muted { color: var(--text-muted) !important; }
+
+        .card, .modal-content, .list-group-item {
+            background-color: var(--bg-card);
+            border: 1px solid #333;
+            color: var(--text-main);
+        }
+
+        .list-group-item { border-bottom: 1px solid #444; }
+
+        .form-control {
+            background-color: var(--bg-input) !important;
+            border: 1px solid #444;
+            color: #fff !important;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            border-color: var(--accent);
+        }
+
+        .btn-close { filter: invert(1); }
+
+        .pending-task-box {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); border-color: var(--gold); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); border-color: var(--gold); }
+        }
+
+        .rank-up-anim { animation: pulse-gold 2s infinite; border: 1px solid var(--gold) !important; }
+        
+        .xp-badge-total {
+            font-size: 0.9rem;
+            background-color: #333;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid #555;
+        }
+
+        /* Área de Backup */
+        .backup-controls .btn {
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <header class="mb-5 border-bottom border-secondary pb-3">
+        <div class="row align-items-center g-3">
+            <div class="col-md-6">
+                <h1 class="display-6 fw-bold"><i class="bi bi-graph-up-arrow text-primary"></i> Protocolo 1%</h1>
+                <p class="text-muted mb-0">Planeje. Execute. Repita.</p>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end backup-controls">
+                    <input type="file" id="importFileInput" hidden accept=".json" onchange="importData(this)">
+                    
+                    <button class="btn btn-outline-secondary" onclick="exportData()" title="Baixar Backup JSON">
+                        <i class="bi bi-download"></i> Exportar
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Subir Backup JSON">
+                        <i class="bi bi-upload"></i> Importar
+                    </button>
+                    <div class="vr bg-secondary mx-2"></div>
+                    <button class="btn btn-outline-light" onclick="openHistoryModal()">
+                        <i class="bi bi-clock-history"></i> Log
+                    </button>
+                    <button class="btn btn-primary" onclick="openSkillModal()">
+                        <i class="bi bi-plus-lg"></i> Nova Área
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="app-container"></div>
+</div>
+
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log de Execução (Últimas 50)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <ul class="list-group list-group-flush" id="historyList"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="skillModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Área</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="text-muted">Nome</label>
+                <input type="text" id="skillNameInput" class="form-control" placeholder="Ex: Finanças">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="addSkill()">Criar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="compModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Competência</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="currentSkillId">
+                <label class="text-muted">Nome</label>
+                <input type="text" id="compNameInput" class="form-control" placeholder="Ex: Investimentos">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="addCompetence()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Comprometimento Diário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="targetSkillId">
+                <input type="hidden" id="targetCompId">
+                <p class="text-muted small">Defina o que você vai fazer. Isso ficará pendente até você concluir.</p>
+                <input type="text" id="newTaskDesc" class="form-control" placeholder="Ex: Ler capítulo 3...">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning text-dark fw-bold" onclick="commitTask()">
+                    <i class="bi bi-lock-fill"></i> Comprometer-se
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let data = JSON.parse(localStorage.getItem('protocolo1data')) || [];
+
+    const RANKS = [
+        { name: "Iniciante", minXp: 0, color: "#6c757d", icon: "bi-circle" },
+        { name: "Aprendiz", minXp: 100, color: "#0dcaf0", icon: "bi-book" },
+        { name: "Praticante", minXp: 500, color: "#198754", icon: "bi-hammer" },
+        { name: "Especialista", minXp: 2000, color: "#0d6efd", icon: "bi-gem" },
+        { name: "Mestre", minXp: 5000, color: "#dc3545", icon: "bi-lightning-charge-fill" },
+        { name: "Grão Mestre", minXp: 10000, color: "#ffd700", icon: "bi-trophy-fill" }
+    ];
+
+    // --- FUNÇÕES DE BACKUP (JSON) ---
+
+    function exportData() {
+        if (data.length === 0) return alert("Nada para exportar ainda.");
+        
+        // Cria o JSON
+        const dataStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        
+        // Cria link temporário
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        // Data no nome do arquivo
+        const date = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `protocolo_backup_${date}.json`;
+        
+        // Trigger download
+        document.body.appendChild(a);
+        a.click();
+        
+        // Limpeza
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(inputElement) {
+        const file = inputElement.files[0];
+        if (!file) return;
+
+        if (!confirm("ATENÇÃO: Importar um arquivo substituirá TODOS os dados atuais. Essa ação é irreversível. Deseja continuar?")) {
+            inputElement.value = ''; // Reseta o input
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                
+                // Validação básica simples (verifica se é array)
+                if (!Array.isArray(json)) {
+                    throw new Error("Formato de arquivo inválido.");
+                }
+
+                data = json;
+                saveData();
+                alert("Backup restaurado com sucesso!");
+            } catch (err) {
+                alert("Erro ao ler arquivo: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+        inputElement.value = ''; // Reseta para permitir re-upload do mesmo arquivo se necessário
+    }
+
+    // --- Core Logic ---
+
+    function saveData() {
+        localStorage.setItem('protocolo1data', JSON.stringify(data));
+        render();
+    }
+
+    function getRank(xp) {
+        for (let i = RANKS.length - 1; i >= 0; i--) {
+            if (xp >= RANKS[i].minXp) return RANKS[i];
+        }
+        return RANKS[0];
+    }
+
+    function getNextRank(xp) {
+        for (let i = 0; i < RANKS.length; i++) {
+            if (xp < RANKS[i].minXp) return RANKS[i];
+        }
+        return null; 
+    }
+
+    function openHistoryModal() {
+        const list = document.getElementById('historyList');
+        list.innerHTML = '';
+        let allHistory = [];
+        
+        data.forEach(skill => {
+            if(skill.competences) {
+                skill.competences.forEach(comp => {
+                    if(comp.history) {
+                        comp.history.forEach(entry => {
+                            allHistory.push({
+                                skillName: skill.name,
+                                compName: comp.name,
+                                task: entry.task,
+                                date: entry.timestamp || entry.date 
+                            });
+                        });
+                    }
+                });
+            }
+        });
+
+        allHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const top50 = allHistory.slice(0, 50);
+
+        if (top50.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-center text-muted py-4">Histórico vazio.</li>';
+        } else {
+            top50.forEach(h => {
+                const dateObj = new Date(h.date);
+                const dateStr = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                list.innerHTML += `
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-secondary mb-1">${h.skillName} > ${h.compName}</span>
+                            <small class="text-muted" style="font-size:0.75rem">${dateStr}</small>
+                        </div>
+                        <div class="text-white">${h.task}</div>
+                    </li>
+                `;
+            });
+        }
+        new bootstrap.Modal(document.getElementById('historyModal')).show();
+    }
+
+    function openSkillModal() { new bootstrap.Modal(document.getElementById('skillModal')).show(); }
+    
+    function addSkill() {
+        const name = document.getElementById('skillNameInput').value;
+        if (!name) return;
+        data.push({ id: Date.now(), name: name, competences: [] });
+        document.getElementById('skillNameInput').value = '';
+        bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
+        saveData();
+    }
+
+    function openCompModal(skillId) {
+        document.getElementById('currentSkillId').value = skillId;
+        new bootstrap.Modal(document.getElementById('compModal')).show();
+    }
+
+    function addCompetence() {
+        const skillId = parseInt(document.getElementById('currentSkillId').value);
+        const name = document.getElementById('compNameInput').value;
+        if (!name) return;
+        const skill = data.find(s => s.id === skillId);
+        skill.competences.push({ 
+            id: Date.now(), 
+            name: name, 
+            xp: 0, 
+            history: [],
+            activeTask: null
+        });
+        document.getElementById('compNameInput').value = '';
+        bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
+        saveData();
+    }
+
+    function openCreateTaskModal(skillId, compId) {
+        document.getElementById('targetSkillId').value = skillId;
+        document.getElementById('targetCompId').value = compId;
+        document.getElementById('newTaskDesc').value = '';
+        new bootstrap.Modal(document.getElementById('createTaskModal')).show();
+    }
+
+    function commitTask() {
+        const skillId = parseInt(document.getElementById('targetSkillId').value);
+        const compId = parseInt(document.getElementById('targetCompId').value);
+        const desc = document.getElementById('newTaskDesc').value;
+        if(!desc) return alert("Defina a tarefa.");
+
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+        comp.activeTask = {
+            desc: desc,
+            date: new Date().toISOString().split('T')[0]
+        };
+        bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
+        saveData();
+    }
+
+    function finishTask(skillId, compId) {
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+        if (!comp.activeTask) return;
+
+        const oldRank = getRank(comp.xp);
+        comp.history.push({
+            task: comp.activeTask.desc,
+            date: new Date().toISOString(),
+            timestamp: new Date().toISOString()
+        });
+        comp.xp += 10;
+        comp.activeTask = null;
+
+        const newRank = getRank(comp.xp);
+        saveData();
+
+        triggerConfettiMinor();
+        if (newRank.name !== oldRank.name) {
+            setTimeout(() => {
+                alert(`SUBIU DE NÍVEL! ${newRank.name} em ${comp.name}`);
+                triggerConfettiMajor();
+            }, 300);
+        }
+    }
+
+    function cancelTask(skillId, compId) {
+        if(!confirm("Desistir desta tarefa?")) return;
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+        comp.activeTask = null;
+        saveData();
+    }
+
+    function deleteSkill(id) {
+        if(confirm("Excluir área e dados?")) {
+            data = data.filter(s => s.id !== id);
+            saveData();
+        }
+    }
+
+    function deleteComp(skillId, compId) {
+        if(confirm("Excluir competência?")) {
+            const skill = data.find(s => s.id === skillId);
+            skill.competences = skill.competences.filter(c => c.id !== compId);
+            saveData();
+        }
+    }
+
+    function triggerConfettiMinor() {
+        confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] });
+    }
+
+    function triggerConfettiMajor() {
+        const end = Date.now() + 2000;
+        (function frame() {
+            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffd700'] });
+            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffd700'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+
+    function render() {
+        const container = document.getElementById('app-container');
+        container.innerHTML = '';
+        const todayKey = new Date().toISOString().split('T')[0];
+
+        if (data.length === 0) {
+            container.innerHTML = `<div class="text-center text-muted mt-5 opacity-50"><i class="bi bi-clipboard-data fs-1"></i><p class="mt-2">Sem dados. Crie sua primeira habilidade.</p></div>`;
+            return;
+        }
+
+        data.forEach(skill => {
+            const totalSkillXp = skill.competences ? skill.competences.reduce((acc, curr) => acc + (curr.xp || 0), 0) : 0;
+            let compsHtml = '';
+
+            if (skill.competences && skill.competences.length > 0) {
+                skill.competences.forEach(comp => {
+                    const rank = getRank(comp.xp);
+                    const nextRank = getNextRank(comp.xp);
+                    let progress = 100; 
+                    let nextText = "Lenda";
+
+                    if (nextRank) {
+                        const total = nextRank.minXp - rank.minXp || 100;
+                        const current = comp.xp - rank.minXp;
+                        progress = Math.max(5, (current / total) * 100);
+                        nextText = `Próximo: ${nextRank.minXp} XP`;
+                    }
+
+                    const lastHistory = comp.history.length ? comp.history[comp.history.length-1] : null;
+                    const doneToday = lastHistory && lastHistory.date.startsWith(todayKey);
+
+                    let actionArea = '';
+
+                    if (doneToday) {
+                        actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Tarefa do dia concluída</button>`;
+                    } else if (comp.activeTask) {
+                        actionArea = `
+                            <div class="pending-task-box">
+                                <small class="d-block text-warning mb-1"><i class="bi bi-hourglass-split"></i> Pendente</small>
+                                <div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success btn-sm flex-grow-1" onclick="finishTask(${skill.id}, ${comp.id})"><i class="bi bi-check-lg"></i> Feito</button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Criar Tarefa de Hoje</button>`;
+                    }
+                    
+                    const borderClass = rank.minXp >= 10000 ? 'rank-up-anim' : '';
+
+                    compsHtml += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card p-3 h-100 ${borderClass}">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h5 class="fw-bold mb-0 text-white text-truncate">${comp.name}</h5>
+                                <i class="bi bi-trash text-secondary small" style="cursor:pointer" onclick="deleteComp(${skill.id}, ${comp.id})"></i>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="${rank.icon} me-2 fs-4" style="color:${rank.color}"></i>
+                                <div class="line-height-1">
+                                    <div class="small text-muted text-uppercase" style="font-size:0.65rem">Rank</div>
+                                    <div style="color:${rank.color}; font-weight:bold; font-size:0.9rem">${rank.name}</div>
+                                </div>
+                                <div class="ms-auto fw-bold text-light">${comp.xp} XP</div>
+                            </div>
+                            <div class="progress bg-dark mb-1" style="height:6px">
+                                <div class="progress-bar" style="width: ${progress}%; background-color: ${rank.color}"></div>
+                            </div>
+                            <div class="text-end text-muted small mb-3 fst-italic" style="font-size:0.7rem">${nextText}</div>
+                            <div class="mt-auto pt-2 border-top border-secondary border-opacity-25">${actionArea}</div>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                compsHtml = `<div class="col-12 text-muted fst-italic small">Adicione competências para começar.</div>`;
+            }
+
+            container.innerHTML += `
+            <div class="mb-5 fade-in">
+                <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                    <h3 class="m-0 text-white fw-light fs-4">${skill.name}</h3>
+                    <span class="ms-3 xp-badge-total text-warning"><i class="bi bi-lightning-fill"></i> ${totalSkillXp} XP Total</span>
+                    <div class="ms-auto">
+                        <button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i> Comp.</button>
+                        <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+                <div class="row g-3">${compsHtml}</div>
+            </div>`;
+        });
+    }
+
+    render();
+</script>
+</body>
+</html>
