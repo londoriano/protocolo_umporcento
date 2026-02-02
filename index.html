@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     
     <style>
         :root {
@@ -23,6 +24,7 @@
             background-color: var(--bg-body) !important;
             color: var(--text-main) !important;
             font-family: 'Segoe UI', sans-serif;
+            overflow-x: hidden; /* Evita scroll lateral no drag */
         }
 
         h1, h2, h3, h4, h5, p, span, div, label { color: var(--text-main); }
@@ -56,12 +58,12 @@
             border-radius: 4px;
         }
 
+        /* Animação Rank Maximo */
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); border-color: var(--gold); }
             70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); border-color: var(--gold); }
         }
-
         .rank-up-anim { animation: pulse-gold 2s infinite; border: 1px solid var(--gold) !important; }
         
         .xp-badge-total {
@@ -72,9 +74,23 @@
             border: 1px solid #555;
         }
 
-        /* Área de Backup */
-        .backup-controls .btn {
-            font-size: 0.8rem;
+        .backup-controls .btn { font-size: 0.8rem; }
+
+        /* Estilos Drag & Drop */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #333;
+            border: 1px dashed #666;
+        }
+        .card {
+            cursor: grab; /* Indica que pode arrastar */
+        }
+        .card:active {
+            cursor: grabbing;
+        }
+        /* Evita arrastar clicando nos botões */
+        .card button, .card i.bi-trash {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -91,10 +107,10 @@
                 <div class="d-flex flex-wrap gap-2 justify-content-md-end backup-controls">
                     <input type="file" id="importFileInput" hidden accept=".json" onchange="importData(this)">
                     
-                    <button class="btn btn-outline-secondary" onclick="exportData()" title="Baixar Backup JSON">
+                    <button class="btn btn-outline-secondary" onclick="exportData()" title="Backup">
                         <i class="bi bi-download"></i> Exportar
                     </button>
-                    <button class="btn btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Subir Backup JSON">
+                    <button class="btn btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Restaurar">
                         <i class="bi bi-upload"></i> Importar
                     </button>
                     <div class="vr bg-secondary mx-2"></div>
@@ -116,7 +132,7 @@
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Log de Execução (Últimas 50)</h5>
+                <h5 class="modal-title">Log de Execução</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -173,7 +189,7 @@
             <div class="modal-body">
                 <input type="hidden" id="targetSkillId">
                 <input type="hidden" id="targetCompId">
-                <p class="text-muted small">Defina o que você vai fazer. Isso ficará pendente até você concluir.</p>
+                <p class="text-muted small">Defina o que você vai fazer.</p>
                 <input type="text" id="newTaskDesc" class="form-control" placeholder="Ex: Ler capítulo 3...">
             </div>
             <div class="modal-footer">
@@ -199,29 +215,25 @@
         { name: "Grão Mestre", minXp: 10000, color: "#ffd700", icon: "bi-trophy-fill" }
     ];
 
-    // --- FUNÇÕES DE BACKUP (JSON) ---
+    function getLocalDayKey() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 
+    // --- BACKUP ---
     function exportData() {
-        if (data.length === 0) return alert("Nada para exportar ainda.");
-        
-        // Cria o JSON
+        if (data.length === 0) return alert("Nada para exportar.");
         const dataStr = JSON.stringify(data, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
-        
-        // Cria link temporário
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        
-        // Data no nome do arquivo
-        const date = new Date().toISOString().split('T')[0];
         a.href = url;
-        a.download = `protocolo_backup_${date}.json`;
-        
-        // Trigger download
+        a.download = `protocolo_backup_${getLocalDayKey()}.json`;
         document.body.appendChild(a);
         a.click();
-        
-        // Limpeza
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
@@ -229,38 +241,35 @@
     function importData(inputElement) {
         const file = inputElement.files[0];
         if (!file) return;
-
-        if (!confirm("ATENÇÃO: Importar um arquivo substituirá TODOS os dados atuais. Essa ação é irreversível. Deseja continuar?")) {
-            inputElement.value = ''; // Reseta o input
+        if (!confirm("Isso substituirá TODOS os dados atuais. Continuar?")) {
+            inputElement.value = '';
             return;
         }
-
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const json = JSON.parse(e.target.result);
-                
-                // Validação básica simples (verifica se é array)
-                if (!Array.isArray(json)) {
-                    throw new Error("Formato de arquivo inválido.");
-                }
-
+                if (!Array.isArray(json)) throw new Error("Formato inválido.");
                 data = json;
                 saveData();
-                alert("Backup restaurado com sucesso!");
+                alert("Restaurado!");
             } catch (err) {
-                alert("Erro ao ler arquivo: " + err.message);
+                alert("Erro: " + err.message);
             }
         };
         reader.readAsText(file);
-        inputElement.value = ''; // Reseta para permitir re-upload do mesmo arquivo se necessário
+        inputElement.value = '';
     }
 
-    // --- Core Logic ---
-
+    // --- CORE ---
     function saveData() {
         localStorage.setItem('protocolo1data', JSON.stringify(data));
-        render();
+        render(); // Render reconstrói o DOM e reinicia os Sortables
+    }
+
+    // Save silencioso para o Drag & Drop (não re-renderiza para não quebrar a animação)
+    function saveOrderOnly() {
+        localStorage.setItem('protocolo1data', JSON.stringify(data));
     }
 
     function getRank(xp) {
@@ -269,7 +278,6 @@
         }
         return RANKS[0];
     }
-
     function getNextRank(xp) {
         for (let i = 0; i < RANKS.length; i++) {
             if (xp < RANKS[i].minXp) return RANKS[i];
@@ -277,52 +285,7 @@
         return null; 
     }
 
-    function openHistoryModal() {
-        const list = document.getElementById('historyList');
-        list.innerHTML = '';
-        let allHistory = [];
-        
-        data.forEach(skill => {
-            if(skill.competences) {
-                skill.competences.forEach(comp => {
-                    if(comp.history) {
-                        comp.history.forEach(entry => {
-                            allHistory.push({
-                                skillName: skill.name,
-                                compName: comp.name,
-                                task: entry.task,
-                                date: entry.timestamp || entry.date 
-                            });
-                        });
-                    }
-                });
-            }
-        });
-
-        allHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const top50 = allHistory.slice(0, 50);
-
-        if (top50.length === 0) {
-            list.innerHTML = '<li class="list-group-item text-center text-muted py-4">Histórico vazio.</li>';
-        } else {
-            top50.forEach(h => {
-                const dateObj = new Date(h.date);
-                const dateStr = dateObj.toLocaleDateString('pt-BR') + ' ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                
-                list.innerHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between">
-                            <span class="badge bg-secondary mb-1">${h.skillName} > ${h.compName}</span>
-                            <small class="text-muted" style="font-size:0.75rem">${dateStr}</small>
-                        </div>
-                        <div class="text-white">${h.task}</div>
-                    </li>
-                `;
-            });
-        }
-        new bootstrap.Modal(document.getElementById('historyModal')).show();
-    }
-
+    // --- ACTIONS ---
     function openSkillModal() { new bootstrap.Modal(document.getElementById('skillModal')).show(); }
     
     function addSkill() {
@@ -344,13 +307,7 @@
         const name = document.getElementById('compNameInput').value;
         if (!name) return;
         const skill = data.find(s => s.id === skillId);
-        skill.competences.push({ 
-            id: Date.now(), 
-            name: name, 
-            xp: 0, 
-            history: [],
-            activeTask: null
-        });
+        skill.competences.push({ id: Date.now(), name: name, xp: 0, history: [], activeTask: null });
         document.getElementById('compNameInput').value = '';
         bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
         saveData();
@@ -368,13 +325,11 @@
         const compId = parseInt(document.getElementById('targetCompId').value);
         const desc = document.getElementById('newTaskDesc').value;
         if(!desc) return alert("Defina a tarefa.");
-
+        
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
-        comp.activeTask = {
-            desc: desc,
-            date: new Date().toISOString().split('T')[0]
-        };
+        comp.activeTask = { desc: desc, date: getLocalDayKey() };
+        
         bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
         saveData();
     }
@@ -385,11 +340,15 @@
         if (!comp.activeTask) return;
 
         const oldRank = getRank(comp.xp);
+        const now = new Date();
+        
         comp.history.push({
             task: comp.activeTask.desc,
-            date: new Date().toISOString(),
-            timestamp: new Date().toISOString()
+            date: now.toISOString(),
+            timestamp: now.toISOString(),
+            completionDate: getLocalDayKey()
         });
+        
         comp.xp += 10;
         comp.activeTask = null;
 
@@ -406,7 +365,7 @@
     }
 
     function cancelTask(skillId, compId) {
-        if(!confirm("Desistir desta tarefa?")) return;
+        if(!confirm("Desistir?")) return;
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
         comp.activeTask = null;
@@ -414,7 +373,7 @@
     }
 
     function deleteSkill(id) {
-        if(confirm("Excluir área e dados?")) {
+        if(confirm("Excluir área?")) {
             data = data.filter(s => s.id !== id);
             saveData();
         }
@@ -428,10 +387,33 @@
         }
     }
 
+    function openHistoryModal() {
+        const list = document.getElementById('historyList');
+        list.innerHTML = '';
+        let allHistory = [];
+        data.forEach(skill => {
+            if(skill.competences) skill.competences.forEach(comp => {
+                if(comp.history) comp.history.forEach(entry => {
+                    allHistory.push({
+                        skillName: skill.name, compName: comp.name, task: entry.task, date: entry.timestamp || entry.date 
+                    });
+                });
+            });
+        });
+        allHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const top50 = allHistory.slice(0, 50);
+        if (top50.length === 0) list.innerHTML = '<li class="list-group-item text-center text-muted">Vazio.</li>';
+        else top50.forEach(h => {
+            const d = new Date(h.date);
+            const str = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            list.innerHTML += `<li class="list-group-item"><div class="d-flex justify-content-between"><span class="badge bg-secondary mb-1">${h.skillName} > ${h.compName}</span><small class="text-muted">${str}</small></div><div class="text-white">${h.task}</div></li>`;
+        });
+        new bootstrap.Modal(document.getElementById('historyModal')).show();
+    }
+
     function triggerConfettiMinor() {
         confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] });
     }
-
     function triggerConfettiMajor() {
         const end = Date.now() + 2000;
         (function frame() {
@@ -441,13 +423,14 @@
         }());
     }
 
+    // --- RENDER ---
     function render() {
         const container = document.getElementById('app-container');
         container.innerHTML = '';
-        const todayKey = new Date().toISOString().split('T')[0];
+        const todayKey = getLocalDayKey();
 
         if (data.length === 0) {
-            container.innerHTML = `<div class="text-center text-muted mt-5 opacity-50"><i class="bi bi-clipboard-data fs-1"></i><p class="mt-2">Sem dados. Crie sua primeira habilidade.</p></div>`;
+            container.innerHTML = `<div class="text-center text-muted mt-5 opacity-50"><i class="bi bi-clipboard-data fs-1"></i><p class="mt-2">Sem dados.</p></div>`;
             return;
         }
 
@@ -470,34 +453,29 @@
                     }
 
                     const lastHistory = comp.history.length ? comp.history[comp.history.length-1] : null;
-                    const doneToday = lastHistory && lastHistory.date.startsWith(todayKey);
+                    let doneToday = false;
+                    if (lastHistory) {
+                        if (lastHistory.completionDate) doneToday = lastHistory.completionDate === todayKey;
+                        else doneToday = lastHistory.date.startsWith(todayKey); 
+                    }
 
                     let actionArea = '';
-
                     if (doneToday) {
                         actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Tarefa do dia concluída</button>`;
                     } else if (comp.activeTask) {
-                        actionArea = `
-                            <div class="pending-task-box">
-                                <small class="d-block text-warning mb-1"><i class="bi bi-hourglass-split"></i> Pendente</small>
-                                <div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-success btn-sm flex-grow-1" onclick="finishTask(${skill.id}, ${comp.id})"><i class="bi bi-check-lg"></i> Feito</button>
-                                    <button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                            </div>
-                        `;
+                        actionArea = `<div class="pending-task-box"><small class="d-block text-warning mb-1"><i class="bi bi-hourglass-split"></i> Pendente</small><div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div><div class="d-flex gap-2"><button class="btn btn-success btn-sm flex-grow-1" onclick="finishTask(${skill.id}, ${comp.id})"><i class="bi bi-check-lg"></i> Feito</button><button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})"><i class="bi bi-x-lg"></i></button></div></div>`;
                     } else {
                         actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Criar Tarefa de Hoje</button>`;
                     }
                     
                     const borderClass = rank.minXp >= 10000 ? 'rank-up-anim' : '';
 
+                    // Adicionado data-id para o SortableJS identificar o item
                     compsHtml += `
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6 col-lg-4" data-id="${comp.id}">
                         <div class="card p-3 h-100 ${borderClass}">
                             <div class="d-flex justify-content-between mb-2">
-                                <h5 class="fw-bold mb-0 text-white text-truncate">${comp.name}</h5>
+                                <h5 class="fw-bold mb-0 text-white text-truncate"><i class="bi bi-grip-vertical text-muted me-1"></i>${comp.name}</h5>
                                 <i class="bi bi-trash text-secondary small" style="cursor:pointer" onclick="deleteComp(${skill.id}, ${comp.id})"></i>
                             </div>
                             <div class="d-flex align-items-center mb-3">
@@ -520,6 +498,7 @@
                 compsHtml = `<div class="col-12 text-muted fst-italic small">Adicione competências para começar.</div>`;
             }
 
+            // ID único para o container Sortable
             container.innerHTML += `
             <div class="mb-5 fade-in">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
@@ -530,8 +509,38 @@
                         <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button>
                     </div>
                 </div>
-                <div class="row g-3">${compsHtml}</div>
+                <div class="row g-3 sortable-list" id="sortable-skill-${skill.id}">${compsHtml}</div>
             </div>`;
+        });
+
+        // --- Inicializar Drag & Drop (SortableJS) ---
+        data.forEach(skill => {
+            const el = document.getElementById(`sortable-skill-${skill.id}`);
+            if(el) {
+                new Sortable(el, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    handle: '.card', // Pode arrastar clicando em qualquer lugar do card
+                    onEnd: function(evt) {
+                        // 1. Pega a nova ordem de IDs do DOM
+                        const newOrderIds = Array.from(evt.to.children).map(item => parseInt(item.getAttribute('data-id')));
+                        
+                        // 2. Encontra a habilidade nos dados
+                        const currentSkill = data.find(s => s.id === skill.id);
+                        
+                        // 3. Reorganiza o array de competências baseado na nova ordem visual
+                        if(currentSkill && currentSkill.competences) {
+                            // Mapeia os objetos existentes
+                            const compMap = new Map(currentSkill.competences.map(c => [c.id, c]));
+                            // Reconstrói o array na ordem nova
+                            currentSkill.competences = newOrderIds.map(id => compMap.get(id)).filter(c => c !== undefined);
+                            
+                            // 4. Salva silenciosamente (sem re-renderizar para não dar flick)
+                            saveOrderOnly();
+                        }
+                    }
+                });
+            }
         });
     }
 
