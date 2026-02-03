@@ -17,6 +17,7 @@
             --text-main: #ffffff;
             --text-muted: #a0a0a0;
             --gold: #ffd700;
+            --fire: #ff4500;
             --accent: #0d6efd;
         }
 
@@ -24,7 +25,7 @@
             background-color: var(--bg-body) !important;
             color: var(--text-main) !important;
             font-family: 'Segoe UI', sans-serif;
-            overflow-x: hidden; /* Evita scroll lateral no drag */
+            overflow-x: hidden;
         }
 
         h1, h2, h3, h4, h5, p, span, div, label { color: var(--text-main); }
@@ -50,6 +51,29 @@
 
         .btn-close { filter: invert(1); }
 
+        /* Streak (Sequência) Style */
+        .streak-badge {
+            background: linear-gradient(135deg, #ff4b1f, #ff9068);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(255, 75, 31, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s;
+        }
+        .streak-badge:hover { transform: scale(1.05); }
+        .streak-badge i { margin-right: 6px; font-size: 1.2rem; }
+        .streak-broken {
+            background: #333;
+            color: #888;
+            box-shadow: none;
+            border: 1px solid #444;
+        }
+
+        /* Pending Task */
         .pending-task-box {
             background-color: rgba(255, 193, 7, 0.1);
             border-left: 3px solid #ffc107;
@@ -58,7 +82,7 @@
             border-radius: 4px;
         }
 
-        /* Animação Rank Maximo */
+        /* Animações */
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); border-color: var(--gold); }
             70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
@@ -74,24 +98,10 @@
             border: 1px solid #555;
         }
 
-        .backup-controls .btn { font-size: 0.8rem; }
-
-        /* Estilos Drag & Drop */
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #333;
-            border: 1px dashed #666;
-        }
-        .card {
-            cursor: grab; /* Indica que pode arrastar */
-        }
-        .card:active {
-            cursor: grabbing;
-        }
-        /* Evita arrastar clicando nos botões */
-        .card button, .card i.bi-trash {
-            cursor: pointer;
-        }
+        .sortable-ghost { opacity: 0.4; background-color: #333; border: 1px dashed #666; }
+        .card { cursor: grab; }
+        .card:active { cursor: grabbing; }
+        .card button, .card i.bi-trash { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -99,26 +109,33 @@
 <div class="container py-5">
     <header class="mb-5 border-bottom border-secondary pb-3">
         <div class="row align-items-center g-3">
-            <div class="col-md-6">
-                <h1 class="display-6 fw-bold"><i class="bi bi-graph-up-arrow text-primary"></i> Protocolo 1%</h1>
-                <p class="text-muted mb-0">Planeje. Execute. Repita.</p>
+            <div class="col-md-5">
+                <h1 class="display-6 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary"></i> Protocolo 1%</h1>
+                <p class="text-muted small mb-0">Consistência vence intensidade.</p>
             </div>
-            <div class="col-md-6">
-                <div class="d-flex flex-wrap gap-2 justify-content-md-end backup-controls">
+            
+         <div class="col-md-2 text-md-center">
+                <div id="streakDisplay" class="streak-badge streak-broken" title="Dias seguidos com pelo menos 1 tarefa">
+                    <i class="bi bi-fire"></i> <span id="streakCount" class="mx-1">0</span> Dias
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end backup-controls align-items-center">
                     <input type="file" id="importFileInput" hidden accept=".json" onchange="importData(this)">
                     
-                    <button class="btn btn-outline-secondary" onclick="exportData()" title="Backup">
-                        <i class="bi bi-download"></i> Exportar
+                    <button class="btn btn-sm btn-outline-secondary" onclick="exportData()" title="Backup">
+                        <i class="bi bi-download"></i>
                     </button>
-                    <button class="btn btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Restaurar">
-                        <i class="bi bi-upload"></i> Importar
+                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Restaurar">
+                        <i class="bi bi-upload"></i>
                     </button>
                     <div class="vr bg-secondary mx-2"></div>
-                    <button class="btn btn-outline-light" onclick="openHistoryModal()">
+                    <button class="btn btn-sm btn-outline-light" onclick="openHistoryModal()">
                         <i class="bi bi-clock-history"></i> Log
                     </button>
-                    <button class="btn btn-primary" onclick="openSkillModal()">
-                        <i class="bi bi-plus-lg"></i> Nova Área
+                    <button class="btn btn-sm btn-primary" onclick="openSkillModal()">
+                        <i class="bi bi-plus-lg"></i> Área
                     </button>
                 </div>
             </div>
@@ -204,7 +221,26 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('protocolo1data')) || [];
+    // --- STATE MANAGEMENT ---
+    let data = [];
+    let streak = { count: 0, lastDate: null };
+
+    // Inicialização segura
+    function init() {
+        // Carrega Skills
+        const storedData = localStorage.getItem('protocolo1data');
+        if (storedData) data = JSON.parse(storedData);
+
+        // Carrega Streak separado para compatibilidade ou objeto principal
+        const storedStreak = localStorage.getItem('protocolo1streak');
+        if (storedStreak) {
+            streak = JSON.parse(storedStreak);
+        }
+
+        checkStreakIntegrity(); // Verifica se quebrou a sequência ao abrir
+        render();
+        updateStreakDisplay();
+    }
 
     const RANKS = [
         { name: "Iniciante", minXp: 0, color: "#6c757d", icon: "bi-circle" },
@@ -215,23 +251,85 @@
         { name: "Grão Mestre", minXp: 10000, color: "#ffd700", icon: "bi-trophy-fill" }
     ];
 
-    function getLocalDayKey() {
+    function getLocalDayKey(offsetDays = 0) {
         const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
 
+    // --- STREAK LOGIC ---
+    function checkStreakIntegrity() {
+        const today = getLocalDayKey();
+        const yesterday = getLocalDayKey(-1);
+
+        // Se nunca houve atividade, streak é 0
+        if (!streak.lastDate) return;
+
+        // Se a última atividade não foi hoje nem ontem, quebrou.
+        if (streak.lastDate !== today && streak.lastDate !== yesterday) {
+            streak.count = 0;
+            saveAll();
+        }
+    }
+
+    function updateStreakOnFinish() {
+        const today = getLocalDayKey();
+        const yesterday = getLocalDayKey(-1);
+
+        if (streak.lastDate === today) {
+            // Já contou hoje, não faz nada
+            return;
+        }
+
+        if (streak.lastDate === yesterday) {
+            // Continuidade perfeita
+            streak.count++;
+        } else {
+            // Começando ou Recomeçando (gap maior que 1 dia)
+            streak.count = 1;
+        }
+
+        streak.lastDate = today;
+        saveAll();
+        updateStreakDisplay();
+    }
+
+    function updateStreakDisplay() {
+        const el = document.getElementById('streakDisplay');
+        const countEl = document.getElementById('streakCount');
+        
+        countEl.innerText = streak.count;
+
+        // Visual check
+        if (streak.count > 0) {
+            el.classList.remove('streak-broken');
+            // Verifica se a última atividade foi hoje para manter "aceso" ou "pendente" (opcional)
+            // Aqui deixaremos aceso se count > 0
+        } else {
+            el.classList.add('streak-broken');
+        }
+    }
+
     // --- BACKUP ---
     function exportData() {
-        if (data.length === 0) return alert("Nada para exportar.");
-        const dataStr = JSON.stringify(data, null, 2);
+        if (data.length === 0 && streak.count === 0) return alert("Nada para exportar.");
+        
+        // Empacota tudo em um objeto V2
+        const backupPackage = {
+            version: "v7.0",
+            skills: data,
+            streak: streak
+        };
+
+        const dataStr = JSON.stringify(backupPackage, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `protocolo_backup_${getLocalDayKey()}.json`;
+        a.download = `protocolo_full_backup_${getLocalDayKey()}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -241,7 +339,7 @@
     function importData(inputElement) {
         const file = inputElement.files[0];
         if (!file) return;
-        if (!confirm("Isso substituirá TODOS os dados atuais. Continuar?")) {
+        if (!confirm("Isso substituirá TODOS os dados atuais (Skills e Streak). Continuar?")) {
             inputElement.value = '';
             return;
         }
@@ -249,10 +347,25 @@
         reader.onload = function(e) {
             try {
                 const json = JSON.parse(e.target.result);
-                if (!Array.isArray(json)) throw new Error("Formato inválido.");
-                data = json;
-                saveData();
-                alert("Restaurado!");
+                
+                // Verifica formato
+                if (Array.isArray(json)) {
+                    // Formato Antigo (apenas skills)
+                    data = json;
+                    // Mantém o streak atual ou reseta? Vamos manter para ser gentil
+                    alert("Backup antigo restaurado (Streak mantido do navegador atual).");
+                } else if (json.version && json.skills) {
+                    // Novo formato
+                    data = json.skills;
+                    streak = json.streak || { count: 0, lastDate: null };
+                    alert("Backup completo restaurado!");
+                } else {
+                    throw new Error("Formato irreconhecível.");
+                }
+
+                saveAll();
+                render();
+                updateStreakDisplay();
             } catch (err) {
                 alert("Erro: " + err.message);
             }
@@ -262,14 +375,10 @@
     }
 
     // --- CORE ---
-    function saveData() {
+    function saveAll() {
         localStorage.setItem('protocolo1data', JSON.stringify(data));
-        render(); // Render reconstrói o DOM e reinicia os Sortables
-    }
-
-    // Save silencioso para o Drag & Drop (não re-renderiza para não quebrar a animação)
-    function saveOrderOnly() {
-        localStorage.setItem('protocolo1data', JSON.stringify(data));
+        localStorage.setItem('protocolo1streak', JSON.stringify(streak));
+        // Não chamamos render() aqui para evitar loop infinito em updates visuais apenas
     }
 
     function getRank(xp) {
@@ -294,7 +403,8 @@
         data.push({ id: Date.now(), name: name, competences: [] });
         document.getElementById('skillNameInput').value = '';
         bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
-        saveData();
+        saveAll();
+        render();
     }
 
     function openCompModal(skillId) {
@@ -310,7 +420,8 @@
         skill.competences.push({ id: Date.now(), name: name, xp: 0, history: [], activeTask: null });
         document.getElementById('compNameInput').value = '';
         bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
-        saveData();
+        saveAll();
+        render();
     }
 
     function openCreateTaskModal(skillId, compId) {
@@ -331,7 +442,8 @@
         comp.activeTask = { desc: desc, date: getLocalDayKey() };
         
         bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
-        saveData();
+        saveAll();
+        render();
     }
 
     function finishTask(skillId, compId) {
@@ -342,6 +454,7 @@
         const oldRank = getRank(comp.xp);
         const now = new Date();
         
+        // Histórico
         comp.history.push({
             task: comp.activeTask.desc,
             date: now.toISOString(),
@@ -352,8 +465,12 @@
         comp.xp += 10;
         comp.activeTask = null;
 
+        // Atualiza STREAK
+        updateStreakOnFinish();
+
         const newRank = getRank(comp.xp);
-        saveData();
+        saveAll();
+        render();
 
         triggerConfettiMinor();
         if (newRank.name !== oldRank.name) {
@@ -369,13 +486,15 @@
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
         comp.activeTask = null;
-        saveData();
+        saveAll();
+        render();
     }
 
     function deleteSkill(id) {
         if(confirm("Excluir área?")) {
             data = data.filter(s => s.id !== id);
-            saveData();
+            saveAll();
+            render();
         }
     }
 
@@ -383,7 +502,8 @@
         if(confirm("Excluir competência?")) {
             const skill = data.find(s => s.id === skillId);
             skill.competences = skill.competences.filter(c => c.id !== compId);
-            saveData();
+            saveAll();
+            render();
         }
     }
 
@@ -461,16 +581,15 @@
 
                     let actionArea = '';
                     if (doneToday) {
-                        actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Tarefa do dia concluída</button>`;
+                        actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Feito Hoje</button>`;
                     } else if (comp.activeTask) {
                         actionArea = `<div class="pending-task-box"><small class="d-block text-warning mb-1"><i class="bi bi-hourglass-split"></i> Pendente</small><div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div><div class="d-flex gap-2"><button class="btn btn-success btn-sm flex-grow-1" onclick="finishTask(${skill.id}, ${comp.id})"><i class="bi bi-check-lg"></i> Feito</button><button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})"><i class="bi bi-x-lg"></i></button></div></div>`;
                     } else {
-                        actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Criar Tarefa de Hoje</button>`;
+                        actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Criar Tarefa</button>`;
                     }
                     
                     const borderClass = rank.minXp >= 10000 ? 'rank-up-anim' : '';
 
-                    // Adicionado data-id para o SortableJS identificar o item
                     compsHtml += `
                     <div class="col-md-6 col-lg-4" data-id="${comp.id}">
                         <div class="card p-3 h-100 ${borderClass}">
@@ -495,17 +614,16 @@
                     </div>`;
                 });
             } else {
-                compsHtml = `<div class="col-12 text-muted fst-italic small">Adicione competências para começar.</div>`;
+                compsHtml = `<div class="col-12 text-muted fst-italic small">Adicione competências.</div>`;
             }
 
-            // ID único para o container Sortable
             container.innerHTML += `
             <div class="mb-5 fade-in">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
                     <h3 class="m-0 text-white fw-light fs-4">${skill.name}</h3>
-                    <span class="ms-3 xp-badge-total text-warning"><i class="bi bi-lightning-fill"></i> ${totalSkillXp} XP Total</span>
+                    <span class="ms-3 xp-badge-total text-warning"><i class="bi bi-lightning-fill"></i> ${totalSkillXp} XP</span>
                     <div class="ms-auto">
-                        <button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i> Comp.</button>
+                        <button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i></button>
                         <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button>
                     </div>
                 </div>
@@ -513,30 +631,21 @@
             </div>`;
         });
 
-        // --- Inicializar Drag & Drop (SortableJS) ---
+        // Re-init Sortable
         data.forEach(skill => {
             const el = document.getElementById(`sortable-skill-${skill.id}`);
             if(el) {
                 new Sortable(el, {
                     animation: 150,
                     ghostClass: 'sortable-ghost',
-                    handle: '.card', // Pode arrastar clicando em qualquer lugar do card
+                    handle: '.card',
                     onEnd: function(evt) {
-                        // 1. Pega a nova ordem de IDs do DOM
                         const newOrderIds = Array.from(evt.to.children).map(item => parseInt(item.getAttribute('data-id')));
-                        
-                        // 2. Encontra a habilidade nos dados
                         const currentSkill = data.find(s => s.id === skill.id);
-                        
-                        // 3. Reorganiza o array de competências baseado na nova ordem visual
                         if(currentSkill && currentSkill.competences) {
-                            // Mapeia os objetos existentes
                             const compMap = new Map(currentSkill.competences.map(c => [c.id, c]));
-                            // Reconstrói o array na ordem nova
                             currentSkill.competences = newOrderIds.map(id => compMap.get(id)).filter(c => c !== undefined);
-                            
-                            // 4. Salva silenciosamente (sem re-renderizar para não dar flick)
-                            saveOrderOnly();
+                            saveAll(); // Salva a ordem
                         }
                     }
                 });
@@ -544,7 +653,9 @@
         });
     }
 
-    render();
+    // Start
+    init();
+
 </script>
 </body>
 </html>
