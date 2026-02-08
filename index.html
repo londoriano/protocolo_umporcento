@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo 1% - Sistema de Maestria</title>
+    <title>Protocolo 1%</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -19,6 +19,7 @@
             --gold: #ffd700;
             --fire: #ff4500;
             --accent: #0d6efd;
+            --timer-bg: #000000;
         }
 
         body {
@@ -51,7 +52,7 @@
 
         .btn-close { filter: invert(1); }
 
-        /* Streak (Sequência) Style */
+        /* Streak & Badges */
         .streak-badge {
             background: linear-gradient(135deg, #ff4b1f, #ff9068);
             color: white;
@@ -62,10 +63,7 @@
             align-items: center;
             box-shadow: 0 0 15px rgba(255, 75, 31, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.2s;
         }
-        .streak-badge:hover { transform: scale(1.05); }
-        .streak-badge i { margin-right: 6px; font-size: 1.2rem; }
         .streak-broken {
             background: #333;
             color: #888;
@@ -73,35 +71,59 @@
             border: 1px solid #444;
         }
 
+        .rank-badge-skill {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        /* Timer Styles */
+        .timer-display {
+            font-family: 'Courier New', monospace;
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--text-main);
+            text-shadow: 0 0 20px rgba(13, 110, 253, 0.5);
+            margin: 20px 0;
+        }
+        .timer-modal-body {
+            background-color: var(--timer-bg);
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+        }
+        .pulse-red {
+            animation: pulse-red 1s infinite;
+        }
+        @keyframes pulse-red {
+            0% { text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
+            50% { text-shadow: 0 0 20px rgba(255, 0, 0, 1); }
+            100% { text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
+        }
+
         /* Pending Task */
         .pending-task-box {
-            background-color: rgba(255, 193, 7, 0.1);
-            border-left: 3px solid #ffc107;
+            background-color: rgba(13, 110, 253, 0.1);
+            border-left: 3px solid var(--accent);
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 4px;
         }
 
-        /* Animações */
+        .rank-up-anim { animation: pulse-gold 2s infinite; border: 1px solid var(--gold) !important; }
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); border-color: var(--gold); }
             70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); border-color: var(--gold); }
         }
-        .rank-up-anim { animation: pulse-gold 2s infinite; border: 1px solid var(--gold) !important; }
-        
-        .xp-badge-total {
-            font-size: 0.9rem;
-            background-color: #333;
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid #555;
-        }
 
         .sortable-ghost { opacity: 0.4; background-color: #333; border: 1px dashed #666; }
-        .card { cursor: grab; }
+        .card { cursor: grab; } 
         .card:active { cursor: grabbing; }
-        .card button, .card i.bi-trash { cursor: pointer; }
+        .card button { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -111,11 +133,11 @@
         <div class="row align-items-center g-3">
             <div class="col-md-5">
                 <h1 class="display-6 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary"></i> Protocolo 1%</h1>
-                <p class="text-muted small mb-0">Consistência vence intensidade.</p>
+                <p class="text-muted small mb-0">Foco Profundo & Maestria.</p>
             </div>
             
-         <div class="col-md-2 text-md-center">
-                <div id="streakDisplay" class="streak-badge streak-broken" title="Dias seguidos com pelo menos 1 tarefa">
+            <div class="col-md-2 text-md-center">
+                <div id="streakDisplay" class="streak-badge streak-broken" title="Dias seguidos com atividade">
                     <i class="bi bi-fire"></i> <span id="streakCount" class="mx-1">0</span> Dias
                 </div>
             </div>
@@ -163,11 +185,11 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Nova Área</h5>
+                <h5 class="modal-title">Nova Área de Habilidade</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <label class="text-muted">Nome</label>
+                <label class="text-muted">Nome da Área</label>
                 <input type="text" id="skillNameInput" class="form-control" placeholder="Ex: Finanças">
             </div>
             <div class="modal-footer">
@@ -186,7 +208,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="currentSkillId">
-                <label class="text-muted">Nome</label>
+                <label class="text-muted">Nome da Competência</label>
                 <input type="text" id="compNameInput" class="form-control" placeholder="Ex: Investimentos">
             </div>
             <div class="modal-footer">
@@ -200,19 +222,73 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Comprometimento Diário</h5>
+                <h5 class="modal-title">O que você vai fazer?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="targetSkillId">
                 <input type="hidden" id="targetCompId">
-                <p class="text-muted small">Defina o que você vai fazer.</p>
                 <input type="text" id="newTaskDesc" class="form-control" placeholder="Ex: Ler capítulo 3...">
             </div>
             <div class="modal-footer">
-                <button class="btn btn-warning text-dark fw-bold" onclick="commitTask()">
-                    <i class="bi bi-lock-fill"></i> Comprometer-se
+                <button class="btn btn-primary w-100" onclick="commitTask()">
+                    <i class="bi bi-save"></i> Salvar Tarefa
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="durationModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Foco Profundo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted mb-4">Selecione o tempo de dedicação total. <br>O XP só é concedido ao final do cronômetro.</p>
+                <div class="d-grid gap-3">
+                    <button class="btn btn-outline-light p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(15, 5)">
+                        <span><i class="bi bi-stopwatch"></i> 15 Minutos</span>
+                        <span class="badge bg-secondary">+5 XP</span>
+                    </button>
+                    <button class="btn btn-outline-primary p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(30, 10)">
+                        <span><i class="bi bi-stopwatch-fill"></i> 30 Minutos</span>
+                        <span class="badge bg-primary">+10 XP</span>
+                    </button>
+                    <button class="btn btn-outline-warning p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(45, 15)">
+                        <span><i class="bi bi-fire"></i> 45 Minutos</span>
+                        <span class="badge bg-warning text-dark">+15 XP</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="timerModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-primary">
+            <div class="modal-header bg-dark border-bottom border-secondary">
+                <h5 class="modal-title"><i class="bi bi-record-circle text-danger blink"></i> Executando Tarefa</h5>
+            </div>
+            <div class="modal-body timer-modal-body">
+                <h4 id="timerTaskTitle" class="text-white mb-3 fw-light">Lendo Livro</h4>
+                <div id="timerDisplay" class="timer-display">00:00</div>
+                <div class="progress mb-3" style="height: 5px;">
+                    <div id="timerProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                </div>
+                
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button id="btnPause" class="btn btn-outline-light" onclick="togglePauseTimer()">
+                        <i class="bi bi-pause-fill"></i> Pausar
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="cancelTimer()">
+                        <i class="bi bi-x-circle"></i> Desistir
+                    </button>
+                </div>
+                <p class="text-muted small mt-3 mb-0">Não saia desta página.</p>
             </div>
         </div>
     </div>
@@ -221,28 +297,15 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // --- STATE MANAGEMENT ---
+    // --- STATE ---
     let data = [];
     let streak = { count: 0, lastDate: null };
+    let activeTimer = null; // { skillId, compId, durationSec, remainingSec, totalXp, status: 'running'|'paused', intervalId }
+    let timerInterval = null;
 
-    // Inicialização segura
-    function init() {
-        // Carrega Skills
-        const storedData = localStorage.getItem('protocolo1data');
-        if (storedData) data = JSON.parse(storedData);
-
-        // Carrega Streak separado para compatibilidade ou objeto principal
-        const storedStreak = localStorage.getItem('protocolo1streak');
-        if (storedStreak) {
-            streak = JSON.parse(storedStreak);
-        }
-
-        checkStreakIntegrity(); // Verifica se quebrou a sequência ao abrir
-        render();
-        updateStreakDisplay();
-    }
-
-    const RANKS = [
+    // --- CONFIGURAÇÃO DE RANKS ---
+    // Ranks para COMPETÊNCIAS (Individual)
+    const COMP_RANKS = [
         { name: "Iniciante", minXp: 0, color: "#6c757d", icon: "bi-circle" },
         { name: "Aprendiz", minXp: 100, color: "#0dcaf0", icon: "bi-book" },
         { name: "Praticante", minXp: 500, color: "#198754", icon: "bi-hammer" },
@@ -251,152 +314,226 @@
         { name: "Grão Mestre", minXp: 10000, color: "#ffd700", icon: "bi-trophy-fill" }
     ];
 
+    // Ranks para HABILIDADES (Agregado - Exige muito mais XP)
+  // Ranks para HABILIDADES (Cores de Faixas)
+    const SKILL_RANKS = [
+        { name: "Faixa-Branca", minXp: 0, color: "#f8f9fa" },   // Branco (Off-white para não ofuscar)
+        { name: "Faixa-Azul", minXp: 500, color: "#0d6efd" },   // Azul Real
+        { name: "Faixa-Roxa", minXp: 2500, color: "#8a2be2" },  // Roxo Vibrante (BlueViolet)
+        { name: "Faixa-Marrom", minXp: 10000, color: "#8B4513" }, // Marrom (SaddleBrown)
+        { name: "Faixa-Preta", minXp: 25000, color: "#343a40" }, // Preto (Cinza Chumbo para visibilidade no fundo escuro)
+        { name: "Faixa-Coral", minXp: 50000, color: "#ff4500" }  // Coral (Laranja Avermelhado)
+    ];
+
+    // --- INIT ---
+    function init() {
+        const storedData = localStorage.getItem('protocolo1data');
+        if (storedData) data = JSON.parse(storedData);
+        
+        const storedStreak = localStorage.getItem('protocolo1streak');
+        if (storedStreak) streak = JSON.parse(storedStreak);
+
+        // Recuperar Timer Ativo (Persistência)
+        const storedTimer = localStorage.getItem('protocolo1timer');
+        if (storedTimer) {
+            activeTimer = JSON.parse(storedTimer);
+            if (activeTimer) resumeTimerUI(); // Reabre o modal se estava rodando
+        }
+
+        checkStreakIntegrity();
+        render();
+        updateStreakDisplay();
+    }
+
     function getLocalDayKey(offsetDays = 0) {
         const d = new Date();
         d.setDate(d.getDate() + offsetDays);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return d.toISOString().split('T')[0];
     }
 
-    // --- STREAK LOGIC ---
-    function checkStreakIntegrity() {
-        const today = getLocalDayKey();
-        const yesterday = getLocalDayKey(-1);
+    function saveAll() {
+        localStorage.setItem('protocolo1data', JSON.stringify(data));
+        localStorage.setItem('protocolo1streak', JSON.stringify(streak));
+        if (activeTimer) {
+            localStorage.setItem('protocolo1timer', JSON.stringify(activeTimer));
+        } else {
+            localStorage.removeItem('protocolo1timer');
+        }
+    }
 
-        // Se nunca houve atividade, streak é 0
-        if (!streak.lastDate) return;
+    // --- LÓGICA DE RANKS ---
+    function getRank(xp, rankList) {
+        for (let i = rankList.length - 1; i >= 0; i--) {
+            if (xp >= rankList[i].minXp) return rankList[i];
+        }
+        return rankList[0];
+    }
 
-        // Se a última atividade não foi hoje nem ontem, quebrou.
-        if (streak.lastDate !== today && streak.lastDate !== yesterday) {
-            streak.count = 0;
+    // --- LÓGICA DO CRONÔMETRO (DEEP WORK) ---
+
+    // 1. Abrir modal de seleção de tempo
+    function openDurationModal(skillId, compId) {
+        if (activeTimer) return alert("Você já tem uma tarefa em execução! Termine-a primeiro.");
+        
+        // Salva temporariamente onde estamos clicando
+        document.getElementById('targetSkillId').value = skillId;
+        document.getElementById('targetCompId').value = compId;
+        
+        const modal = new bootstrap.Modal(document.getElementById('durationModal'));
+        modal.show();
+    }
+
+    // 2. Configurar e Iniciar Timer
+    function startTimerSetup(minutes, xpReward) {
+        const skillId = parseInt(document.getElementById('targetSkillId').value);
+        const compId = parseInt(document.getElementById('targetCompId').value);
+        
+        // Busca info da tarefa
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+        
+        // Fecha modal de seleção
+        bootstrap.Modal.getInstance(document.getElementById('durationModal')).hide();
+
+        // Cria objeto do Timer
+        activeTimer = {
+            skillId: skillId,
+            compId: compId,
+            taskName: comp.activeTask.desc,
+            durationTotal: minutes * 60,
+            remaining: minutes * 60,
+            xpReward: xpReward,
+            status: 'running',
+            lastTick: Date.now()
+        };
+
+        saveAll();
+        resumeTimerUI(); // Abre o modal do timer e inicia o loop
+        render(); // Atualiza a UI principal (bloqueia outros botões)
+    }
+
+    // 3. UI do Timer e Loop
+    function resumeTimerUI() {
+        const timerModal = new bootstrap.Modal(document.getElementById('timerModal'));
+        timerModal.show();
+        
+        document.getElementById('timerTaskTitle').innerText = activeTimer.taskName;
+        updateTimerDisplay();
+
+        if (activeTimer.status === 'running') {
+            startInterval();
+        } else {
+            document.getElementById('btnPause').innerHTML = '<i class="bi bi-play-fill"></i> Continuar';
+            document.getElementById('timerDisplay').classList.remove('pulse-red');
+        }
+    }
+
+    function startInterval() {
+        if (timerInterval) clearInterval(timerInterval);
+        activeTimer.lastTick = Date.now(); // Reseta o tick para evitar saltos
+        
+        document.getElementById('btnPause').innerHTML = '<i class="bi bi-pause-fill"></i> Pausar';
+        document.getElementById('timerDisplay').classList.remove('pulse-red');
+
+        timerInterval = setInterval(() => {
+            const now = Date.now();
+            const delta = (now - activeTimer.lastTick) / 1000;
+            activeTimer.lastTick = now;
+
+            if (activeTimer.remaining > 0) {
+                activeTimer.remaining -= delta;
+                updateTimerDisplay();
+                
+                // Salva a cada 5s para performance
+                if (Math.floor(activeTimer.remaining) % 5 === 0) saveAll();
+            } else {
+                finishTimerSuccess();
+            }
+        }, 1000); // Check a cada 1s, mas usa delta time para precisão
+    }
+
+    function updateTimerDisplay() {
+        const seconds = Math.max(0, Math.ceil(activeTimer.remaining));
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        
+        const percent = (activeTimer.remaining / activeTimer.durationTotal) * 100;
+        document.getElementById('timerProgressBar').style.width = `${percent}%`;
+    }
+
+    function togglePauseTimer() {
+        if (activeTimer.status === 'running') {
+            // Pausar
+            clearInterval(timerInterval);
+            activeTimer.status = 'paused';
+            document.getElementById('btnPause').innerHTML = '<i class="bi bi-play-fill"></i> Continuar';
+            document.getElementById('timerDisplay').classList.add('pulse-red');
+            saveAll();
+        } else {
+            // Retomar
+            activeTimer.status = 'running';
+            activeTimer.lastTick = Date.now(); // Reseta tick
+            startInterval();
             saveAll();
         }
     }
 
-    function updateStreakOnFinish() {
-        const today = getLocalDayKey();
-        const yesterday = getLocalDayKey(-1);
-
-        if (streak.lastDate === today) {
-            // Já contou hoje, não faz nada
-            return;
-        }
-
-        if (streak.lastDate === yesterday) {
-            // Continuidade perfeita
-            streak.count++;
-        } else {
-            // Começando ou Recomeçando (gap maior que 1 dia)
-            streak.count = 1;
-        }
-
-        streak.lastDate = today;
+    function cancelTimer() {
+        if(!confirm("Tem certeza que deseja desistir? Nenhum XP será ganho.")) return;
+        clearInterval(timerInterval);
+        activeTimer = null;
         saveAll();
-        updateStreakDisplay();
+        bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide();
+        render();
     }
 
-    function updateStreakDisplay() {
-        const el = document.getElementById('streakDisplay');
-        const countEl = document.getElementById('streakCount');
+    function finishTimerSuccess() {
+        clearInterval(timerInterval);
         
-        countEl.innerText = streak.count;
+        // Aplica recompensas
+        const skill = data.find(s => s.id === activeTimer.skillId);
+        const comp = skill.competences.find(c => c.id === activeTimer.compId);
+        const xpGained = activeTimer.xpReward;
 
-        // Visual check
-        if (streak.count > 0) {
-            el.classList.remove('streak-broken');
-            // Verifica se a última atividade foi hoje para manter "aceso" ou "pendente" (opcional)
-            // Aqui deixaremos aceso se count > 0
-        } else {
-            el.classList.add('streak-broken');
-        }
-    }
+        const now = new Date();
+        comp.history.push({
+            task: activeTimer.taskName,
+            duration: activeTimer.durationTotal / 60,
+            xp: xpGained,
+            date: now.toISOString(),
+            timestamp: now.toISOString(),
+            completionDate: getLocalDayKey()
+        });
 
-    // --- BACKUP ---
-    function exportData() {
-        if (data.length === 0 && streak.count === 0) return alert("Nada para exportar.");
-        
-        // Empacota tudo em um objeto V2
-        const backupPackage = {
-            version: "v7.0",
-            skills: data,
-            streak: streak
-        };
+        const oldRank = getRank(comp.xp, COMP_RANKS);
+        comp.xp += xpGained;
+        comp.activeTask = null; // Limpa tarefa
+        const newRank = getRank(comp.xp, COMP_RANKS);
 
-        const dataStr = JSON.stringify(backupPackage, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `protocolo_full_backup_${getLocalDayKey()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+        // Atualiza Streak
+        updateStreakOnFinish();
 
-    function importData(inputElement) {
-        const file = inputElement.files[0];
-        if (!file) return;
-        if (!confirm("Isso substituirá TODOS os dados atuais (Skills e Streak). Continuar?")) {
-            inputElement.value = '';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const json = JSON.parse(e.target.result);
-                
-                // Verifica formato
-                if (Array.isArray(json)) {
-                    // Formato Antigo (apenas skills)
-                    data = json;
-                    // Mantém o streak atual ou reseta? Vamos manter para ser gentil
-                    alert("Backup antigo restaurado (Streak mantido do navegador atual).");
-                } else if (json.version && json.skills) {
-                    // Novo formato
-                    data = json.skills;
-                    streak = json.streak || { count: 0, lastDate: null };
-                    alert("Backup completo restaurado!");
-                } else {
-                    throw new Error("Formato irreconhecível.");
-                }
+        // Limpa timer
+        activeTimer = null;
+        saveAll();
 
-                saveAll();
-                render();
-                updateStreakDisplay();
-            } catch (err) {
-                alert("Erro: " + err.message);
+        // UI Final
+        bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide();
+        render();
+
+        triggerConfettiMinor();
+        setTimeout(() => {
+            alert(`SESSÃO CONCLUÍDA! +${xpGained} XP em ${comp.name}.`);
+            if (newRank.name !== oldRank.name) {
+                triggerConfettiMajor();
+                alert(`SUBIU DE RANK! Agora você é ${newRank.name}!`);
             }
-        };
-        reader.readAsText(file);
-        inputElement.value = '';
+        }, 500);
     }
 
-    // --- CORE ---
-    function saveAll() {
-        localStorage.setItem('protocolo1data', JSON.stringify(data));
-        localStorage.setItem('protocolo1streak', JSON.stringify(streak));
-        // Não chamamos render() aqui para evitar loop infinito em updates visuais apenas
-    }
 
-    function getRank(xp) {
-        for (let i = RANKS.length - 1; i >= 0; i--) {
-            if (xp >= RANKS[i].minXp) return RANKS[i];
-        }
-        return RANKS[0];
-    }
-    function getNextRank(xp) {
-        for (let i = 0; i < RANKS.length; i++) {
-            if (xp < RANKS[i].minXp) return RANKS[i];
-        }
-        return null; 
-    }
-
-    // --- ACTIONS ---
-    function openSkillModal() { new bootstrap.Modal(document.getElementById('skillModal')).show(); }
-    
+    // --- CRUD BÁSICO ---
     function addSkill() {
         const name = document.getElementById('skillNameInput').value;
         if (!name) return;
@@ -405,11 +542,6 @@
         bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
         saveAll();
         render();
-    }
-
-    function openCompModal(skillId) {
-        document.getElementById('currentSkillId').value = skillId;
-        new bootstrap.Modal(document.getElementById('compModal')).show();
     }
 
     function addCompetence() {
@@ -422,13 +554,6 @@
         bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
         saveAll();
         render();
-    }
-
-    function openCreateTaskModal(skillId, compId) {
-        document.getElementById('targetSkillId').value = skillId;
-        document.getElementById('targetCompId').value = compId;
-        document.getElementById('newTaskDesc').value = '';
-        new bootstrap.Modal(document.getElementById('createTaskModal')).show();
     }
 
     function commitTask() {
@@ -446,43 +571,8 @@
         render();
     }
 
-    function finishTask(skillId, compId) {
-        const skill = data.find(s => s.id === skillId);
-        const comp = skill.competences.find(c => c.id === compId);
-        if (!comp.activeTask) return;
-
-        const oldRank = getRank(comp.xp);
-        const now = new Date();
-        
-        // Histórico
-        comp.history.push({
-            task: comp.activeTask.desc,
-            date: now.toISOString(),
-            timestamp: now.toISOString(),
-            completionDate: getLocalDayKey()
-        });
-        
-        comp.xp += 10;
-        comp.activeTask = null;
-
-        // Atualiza STREAK
-        updateStreakOnFinish();
-
-        const newRank = getRank(comp.xp);
-        saveAll();
-        render();
-
-        triggerConfettiMinor();
-        if (newRank.name !== oldRank.name) {
-            setTimeout(() => {
-                alert(`SUBIU DE NÍVEL! ${newRank.name} em ${comp.name}`);
-                triggerConfettiMajor();
-            }, 300);
-        }
-    }
-
     function cancelTask(skillId, compId) {
-        if(!confirm("Desistir?")) return;
+        if(!confirm("Remover esta tarefa pendente?")) return;
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
         comp.activeTask = null;
@@ -490,21 +580,92 @@
         render();
     }
 
-    function deleteSkill(id) {
-        if(confirm("Excluir área?")) {
-            data = data.filter(s => s.id !== id);
-            saveAll();
-            render();
-        }
-    }
-
+    function deleteSkill(id) { if(confirm("Apagar Área?")) { data = data.filter(s => s.id !== id); saveAll(); render(); } }
     function deleteComp(skillId, compId) {
-        if(confirm("Excluir competência?")) {
+        if(confirm("Apagar Competência?")) {
             const skill = data.find(s => s.id === skillId);
             skill.competences = skill.competences.filter(c => c.id !== compId);
             saveAll();
             render();
         }
+    }
+
+    // --- UTILS (Streak, Backup, Modais Auxiliares) ---
+    function checkStreakIntegrity() {
+        const today = getLocalDayKey();
+        const yesterday = getLocalDayKey(-1);
+        if (!streak.lastDate) return;
+        if (streak.lastDate !== today && streak.lastDate !== yesterday) {
+            streak.count = 0;
+            saveAll();
+        }
+    }
+
+    function updateStreakOnFinish() {
+        const today = getLocalDayKey();
+        const yesterday = getLocalDayKey(-1);
+        if (streak.lastDate === today) return;
+        if (streak.lastDate === yesterday) streak.count++;
+        else streak.count = 1;
+        streak.lastDate = today;
+        saveAll();
+        updateStreakDisplay();
+    }
+
+    function updateStreakDisplay() {
+        const el = document.getElementById('streakDisplay');
+        const countEl = document.getElementById('streakCount');
+        countEl.innerText = streak.count;
+        if (streak.count > 0) el.classList.remove('streak-broken');
+        else el.classList.add('streak-broken');
+    }
+
+    // Modais e Helpers
+    function openSkillModal() { new bootstrap.Modal(document.getElementById('skillModal')).show(); }
+    function openCompModal(skillId) { 
+        document.getElementById('currentSkillId').value = skillId; 
+        new bootstrap.Modal(document.getElementById('compModal')).show(); 
+    }
+    function openCreateTaskModal(skillId, compId) {
+        document.getElementById('targetSkillId').value = skillId;
+        document.getElementById('targetCompId').value = compId;
+        document.getElementById('newTaskDesc').value = '';
+        new bootstrap.Modal(document.getElementById('createTaskModal')).show();
+    }
+    
+    function triggerConfettiMinor() { confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] }); }
+    function triggerConfettiMajor() {
+        const end = Date.now() + 2000;
+        (function frame() {
+            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffd700'] });
+            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffd700'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+
+    // Backup
+    function exportData() {
+        if (data.length === 0) return alert("Nada para exportar.");
+        const backupPackage = { version: "v8.0", skills: data, streak: streak };
+        const blob = new Blob([JSON.stringify(backupPackage, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `protocolo_deepwork_${getLocalDayKey()}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    function importData(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                if(json.skills) { data = json.skills; streak = json.streak || {count:0}; }
+                else { data = json; } // Legacy support
+                saveAll(); render(); updateStreakDisplay(); alert("Importado!");
+            } catch(err) { alert("Erro ao importar."); }
+        };
+        reader.readAsText(file);
     }
 
     function openHistoryModal() {
@@ -515,7 +676,7 @@
             if(skill.competences) skill.competences.forEach(comp => {
                 if(comp.history) comp.history.forEach(entry => {
                     allHistory.push({
-                        skillName: skill.name, compName: comp.name, task: entry.task, date: entry.timestamp || entry.date 
+                        skillName: skill.name, compName: comp.name, task: entry.task, xp: entry.xp || 10, date: entry.timestamp || entry.date 
                     });
                 });
             });
@@ -526,21 +687,9 @@
         else top50.forEach(h => {
             const d = new Date(h.date);
             const str = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            list.innerHTML += `<li class="list-group-item"><div class="d-flex justify-content-between"><span class="badge bg-secondary mb-1">${h.skillName} > ${h.compName}</span><small class="text-muted">${str}</small></div><div class="text-white">${h.task}</div></li>`;
+            list.innerHTML += `<li class="list-group-item"><div class="d-flex justify-content-between"><span class="badge bg-secondary mb-1">${h.skillName} > ${h.compName}</span><small class="text-muted">${str}</small></div><div class="d-flex justify-content-between"><span>${h.task}</span><span class="text-success fw-bold">+${h.xp} XP</span></div></li>`;
         });
         new bootstrap.Modal(document.getElementById('historyModal')).show();
-    }
-
-    function triggerConfettiMinor() {
-        confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] });
-    }
-    function triggerConfettiMajor() {
-        const end = Date.now() + 2000;
-        (function frame() {
-            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffd700'] });
-            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffd700'] });
-            if (Date.now() < end) requestAnimationFrame(frame);
-        }());
     }
 
     // --- RENDER ---
@@ -548,6 +697,7 @@
         const container = document.getElementById('app-container');
         container.innerHTML = '';
         const todayKey = getLocalDayKey();
+        const isTimerRunning = activeTimer !== null;
 
         if (data.length === 0) {
             container.innerHTML = `<div class="text-center text-muted mt-5 opacity-50"><i class="bi bi-clipboard-data fs-1"></i><p class="mt-2">Sem dados.</p></div>`;
@@ -555,16 +705,20 @@
         }
 
         data.forEach(skill => {
+            // SOMA XP HABILIDADE
             const totalSkillXp = skill.competences ? skill.competences.reduce((acc, curr) => acc + (curr.xp || 0), 0) : 0;
+            // Rank Habilidade
+            const skillRank = getRank(totalSkillXp, SKILL_RANKS);
+
             let compsHtml = '';
 
             if (skill.competences && skill.competences.length > 0) {
                 skill.competences.forEach(comp => {
-                    const rank = getRank(comp.xp);
-                    const nextRank = getNextRank(comp.xp);
+                    const rank = getRank(comp.xp, COMP_RANKS);
+                    const nextRank = COMP_RANKS.find(r => r.minXp > comp.xp);
+                    
                     let progress = 100; 
                     let nextText = "Lenda";
-
                     if (nextRank) {
                         const total = nextRank.minXp - rank.minXp || 100;
                         const current = comp.xp - rank.minXp;
@@ -572,6 +726,7 @@
                         nextText = `Próximo: ${nextRank.minXp} XP`;
                     }
 
+                    // Verifica se já fez hoje
                     const lastHistory = comp.history.length ? comp.history[comp.history.length-1] : null;
                     let doneToday = false;
                     if (lastHistory) {
@@ -580,12 +735,29 @@
                     }
 
                     let actionArea = '';
+                    
                     if (doneToday) {
-                        actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Feito Hoje</button>`;
+                        actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Concluído Hoje</button>`;
                     } else if (comp.activeTask) {
-                        actionArea = `<div class="pending-task-box"><small class="d-block text-warning mb-1"><i class="bi bi-hourglass-split"></i> Pendente</small><div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div><div class="d-flex gap-2"><button class="btn btn-success btn-sm flex-grow-1" onclick="finishTask(${skill.id}, ${comp.id})"><i class="bi bi-check-lg"></i> Feito</button><button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})"><i class="bi bi-x-lg"></i></button></div></div>`;
+                        // TAREFA PENDENTE -> BOTÃO INICIAR (ABRE TEMPO)
+                        const disabledAttr = isTimerRunning ? 'disabled' : '';
+                        const btnText = isTimerRunning ? 'Tarefa em Andamento...' : '<i class="bi bi-play-fill"></i> Iniciar';
+                        
+                        actionArea = `
+                        <div class="pending-task-box">
+                            <div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm flex-grow-1" onclick="openDurationModal(${skill.id}, ${comp.id})" ${disabledAttr}>
+                                    ${btnText}
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})" ${disabledAttr}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>`;
                     } else {
-                        actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Criar Tarefa</button>`;
+                        // SEM TAREFA -> CRIAR
+                         actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Planejar Tarefa</button>`;
                     }
                     
                     const borderClass = rank.minXp >= 10000 ? 'rank-up-anim' : '';
@@ -621,8 +793,11 @@
             <div class="mb-5 fade-in">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
                     <h3 class="m-0 text-white fw-light fs-4">${skill.name}</h3>
-                    <span class="ms-3 xp-badge-total text-warning"><i class="bi bi-lightning-fill"></i> ${totalSkillXp} XP</span>
-                    <div class="ms-auto">
+                    <span class="rank-badge-skill" style="color:${skillRank.color}; border-color:${skillRank.color}">
+                        ${skillRank.name}
+                    </span>
+                    <span class="ms-auto text-secondary small me-3">${totalSkillXp} XP Total</span>
+                    <div>
                         <button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i></button>
                         <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button>
                     </div>
@@ -645,7 +820,7 @@
                         if(currentSkill && currentSkill.competences) {
                             const compMap = new Map(currentSkill.competences.map(c => [c.id, c]));
                             currentSkill.competences = newOrderIds.map(id => compMap.get(id)).filter(c => c !== undefined);
-                            saveAll(); // Salva a ordem
+                            saveAll(); 
                         }
                     }
                 });
@@ -653,9 +828,7 @@
         });
     }
 
-    // Start
     init();
-
 </script>
 </body>
 </html>
