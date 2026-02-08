@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo 1%</title>
+    <title>Protocolo 1% - Deep Work & Challenges</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -19,7 +19,7 @@
             --gold: #ffd700;
             --fire: #ff4500;
             --accent: #0d6efd;
-            --timer-bg: #000000;
+            --challenge: #6f42c1; /* Roxo para desafios */
         }
 
         body {
@@ -90,24 +90,25 @@
             text-shadow: 0 0 20px rgba(13, 110, 253, 0.5);
             margin: 20px 0;
         }
-        .timer-modal-body {
-            background-color: var(--timer-bg);
-            text-align: center;
-            border-radius: 0 0 10px 10px;
-        }
-        .pulse-red {
-            animation: pulse-red 1s infinite;
-        }
+        .pulse-red { animation: pulse-red 1s infinite; }
         @keyframes pulse-red {
             0% { text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
             50% { text-shadow: 0 0 20px rgba(255, 0, 0, 1); }
             100% { text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
         }
 
-        /* Pending Task */
+        /* Pending Boxes */
         .pending-task-box {
             background-color: rgba(13, 110, 253, 0.1);
             border-left: 3px solid var(--accent);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .pending-challenge-box {
+            background-color: rgba(111, 66, 193, 0.15);
+            border-left: 3px solid var(--challenge);
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 4px;
@@ -124,6 +125,17 @@
         .card { cursor: grab; } 
         .card:active { cursor: grabbing; }
         .card button { cursor: pointer; }
+        
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
+            border-bottom: 1px solid #333;
+            padding-bottom: 2px;
+        }
     </style>
 </head>
 <body>
@@ -133,7 +145,7 @@
         <div class="row align-items-center g-3">
             <div class="col-md-5">
                 <h1 class="display-6 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary"></i> Protocolo 1%</h1>
-                <p class="text-muted small mb-0">Foco Profundo & Maestria.</p>
+                <p class="text-muted small mb-0">Foco Profundo & Disciplina.</p>
             </div>
             
             <div class="col-md-2 text-md-center">
@@ -145,20 +157,11 @@
             <div class="col-md-5">
                 <div class="d-flex flex-wrap gap-2 justify-content-md-end backup-controls align-items-center">
                     <input type="file" id="importFileInput" hidden accept=".json" onchange="importData(this)">
-                    
-                    <button class="btn btn-sm btn-outline-secondary" onclick="exportData()" title="Backup">
-                        <i class="bi bi-download"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Restaurar">
-                        <i class="bi bi-upload"></i>
-                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="exportData()" title="Backup"><i class="bi bi-download"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('importFileInput').click()" title="Restaurar"><i class="bi bi-upload"></i></button>
                     <div class="vr bg-secondary mx-2"></div>
-                    <button class="btn btn-sm btn-outline-light" onclick="openHistoryModal()">
-                        <i class="bi bi-clock-history"></i> Log
-                    </button>
-                    <button class="btn btn-sm btn-primary" onclick="openSkillModal()">
-                        <i class="bi bi-plus-lg"></i> Área
-                    </button>
+                    <button class="btn btn-sm btn-outline-light" onclick="openHistoryModal()"><i class="bi bi-clock-history"></i> Log</button>
+                    <button class="btn btn-sm btn-primary" onclick="openSkillModal()"><i class="bi bi-plus-lg"></i> Área</button>
                 </div>
             </div>
         </div>
@@ -185,7 +188,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Nova Área de Habilidade</h5>
+                <h5 class="modal-title">Nova Área</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -222,17 +225,22 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">O que você vai fazer?</h5>
+                <h5 class="modal-title">Planejar Ação</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="targetSkillId">
                 <input type="hidden" id="targetCompId">
-                <input type="text" id="newTaskDesc" class="form-control" placeholder="Ex: Ler capítulo 3...">
+                <input type="hidden" id="taskType"> <p id="modalTaskLabel" class="text-muted mb-2">Descrição:</p>
+                <input type="text" id="newTaskDesc" class="form-control" placeholder="...">
+                <div id="challengeWarning" class="alert alert-dark mt-3 small d-none">
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i> 
+                    <strong>Atenção:</strong> Desafios não podem ser excluídos. Se não cumprir, perderá 1 XP.
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary w-100" onclick="commitTask()">
-                    <i class="bi bi-save"></i> Salvar Tarefa
+                <button class="btn btn-primary w-100" onclick="commitAction()">
+                    <i class="bi bi-save"></i> Confirmar
                 </button>
             </div>
         </div>
@@ -247,19 +255,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <p class="text-muted mb-4">Selecione o tempo de dedicação total. <br>O XP só é concedido ao final do cronômetro.</p>
+                <p class="text-muted mb-4">Selecione o tempo de dedicação total.</p>
                 <div class="d-grid gap-3">
                     <button class="btn btn-outline-light p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(15, 5)">
-                        <span><i class="bi bi-stopwatch"></i> 15 Minutos</span>
+                        <span><i class="bi bi-stopwatch"></i> 15 Min</span>
                         <span class="badge bg-secondary">+5 XP</span>
                     </button>
                     <button class="btn btn-outline-primary p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(30, 10)">
-                        <span><i class="bi bi-stopwatch-fill"></i> 30 Minutos</span>
+                        <span><i class="bi bi-stopwatch-fill"></i> 30 Min</span>
                         <span class="badge bg-primary">+10 XP</span>
                     </button>
                     <button class="btn btn-outline-warning p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(45, 15)">
-                        <span><i class="bi bi-fire"></i> 45 Minutos</span>
+                        <span><i class="bi bi-fire"></i> 45 Min</span>
                         <span class="badge bg-warning text-dark">+15 XP</span>
+                    </button>
+                    <button class="btn btn-outline-danger p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(60, 25)">
+                        <span><i class="bi bi-lightning-charge-fill"></i> 60 Min</span>
+                        <span class="badge bg-danger">+25 XP</span>
                     </button>
                 </div>
             </div>
@@ -273,14 +285,14 @@
             <div class="modal-header bg-dark border-bottom border-secondary">
                 <h5 class="modal-title"><i class="bi bi-record-circle text-danger blink"></i> Executando Tarefa</h5>
             </div>
-            <div class="modal-body timer-modal-body">
-                <h4 id="timerTaskTitle" class="text-white mb-3 fw-light">Lendo Livro</h4>
+            <div class="modal-body text-center bg-black rounded-bottom">
+                <h4 id="timerTaskTitle" class="text-white mb-3 fw-light mt-3">Lendo Livro</h4>
                 <div id="timerDisplay" class="timer-display">00:00</div>
                 <div class="progress mb-3" style="height: 5px;">
                     <div id="timerProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
                 </div>
                 
-                <div class="d-flex justify-content-center gap-3 mt-4">
+                <div class="d-flex justify-content-center gap-3 mt-4 mb-3">
                     <button id="btnPause" class="btn btn-outline-light" onclick="togglePauseTimer()">
                         <i class="bi bi-pause-fill"></i> Pausar
                     </button>
@@ -288,7 +300,23 @@
                         <i class="bi bi-x-circle"></i> Desistir
                     </button>
                 </div>
-                <p class="text-muted small mt-3 mb-0">Não saia desta página.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rankInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sistema de Faixas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-dark table-striped mb-0">
+                    <thead><tr><th>Faixa</th><th>XP Necessário</th></tr></thead>
+                    <tbody id="rankTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -300,11 +328,10 @@
     // --- STATE ---
     let data = [];
     let streak = { count: 0, lastDate: null };
-    let activeTimer = null; // { skillId, compId, durationSec, remainingSec, totalXp, status: 'running'|'paused', intervalId }
+    let activeTimer = null; 
     let timerInterval = null;
 
-    // --- CONFIGURAÇÃO DE RANKS ---
-    // Ranks para COMPETÊNCIAS (Individual)
+    // --- CONFIGS ---
     const COMP_RANKS = [
         { name: "Iniciante", minXp: 0, color: "#6c757d", icon: "bi-circle" },
         { name: "Aprendiz", minXp: 100, color: "#0dcaf0", icon: "bi-book" },
@@ -314,15 +341,13 @@
         { name: "Grão Mestre", minXp: 10000, color: "#ffd700", icon: "bi-trophy-fill" }
     ];
 
-    // Ranks para HABILIDADES (Agregado - Exige muito mais XP)
-  // Ranks para HABILIDADES (Cores de Faixas)
     const SKILL_RANKS = [
-        { name: "Faixa-Branca", minXp: 0, color: "#f8f9fa" },   // Branco (Off-white para não ofuscar)
-        { name: "Faixa-Azul", minXp: 500, color: "#0d6efd" },   // Azul Real
-        { name: "Faixa-Roxa", minXp: 2500, color: "#8a2be2" },  // Roxo Vibrante (BlueViolet)
-        { name: "Faixa-Marrom", minXp: 10000, color: "#8B4513" }, // Marrom (SaddleBrown)
-        { name: "Faixa-Preta", minXp: 25000, color: "#343a40" }, // Preto (Cinza Chumbo para visibilidade no fundo escuro)
-        { name: "Faixa-Coral", minXp: 50000, color: "#ff4500" }  // Coral (Laranja Avermelhado)
+        { name: "Faixa-Branca", minXp: 0, color: "#f8f9fa" },
+        { name: "Faixa-Azul", minXp: 500, color: "#0d6efd" },
+        { name: "Faixa-Roxa", minXp: 2500, color: "#8a2be2" },
+        { name: "Faixa-Marrom", minXp: 10000, color: "#8B4513" },
+        { name: "Faixa-Preta", minXp: 25000, color: "#343a40" },
+        { name: "Faixa-Coral", minXp: 50000, color: "#ff4500" } 
     ];
 
     // --- INIT ---
@@ -333,11 +358,10 @@
         const storedStreak = localStorage.getItem('protocolo1streak');
         if (storedStreak) streak = JSON.parse(storedStreak);
 
-        // Recuperar Timer Ativo (Persistência)
         const storedTimer = localStorage.getItem('protocolo1timer');
         if (storedTimer) {
             activeTimer = JSON.parse(storedTimer);
-            if (activeTimer) resumeTimerUI(); // Reabre o modal se estava rodando
+            if (activeTimer) resumeTimerUI(); 
         }
 
         checkStreakIntegrity();
@@ -354,14 +378,10 @@
     function saveAll() {
         localStorage.setItem('protocolo1data', JSON.stringify(data));
         localStorage.setItem('protocolo1streak', JSON.stringify(streak));
-        if (activeTimer) {
-            localStorage.setItem('protocolo1timer', JSON.stringify(activeTimer));
-        } else {
-            localStorage.removeItem('protocolo1timer');
-        }
+        if (activeTimer) localStorage.setItem('protocolo1timer', JSON.stringify(activeTimer));
+        else localStorage.removeItem('protocolo1timer');
     }
 
-    // --- LÓGICA DE RANKS ---
     function getRank(xp, rankList) {
         for (let i = rankList.length - 1; i >= 0; i--) {
             if (xp >= rankList[i].minXp) return rankList[i];
@@ -369,60 +389,94 @@
         return rankList[0];
     }
 
-    // --- LÓGICA DO CRONÔMETRO (DEEP WORK) ---
+    // --- ACTIONS: TASKS & CHALLENGES ---
 
-    // 1. Abrir modal de seleção de tempo
-    function openDurationModal(skillId, compId) {
-        if (activeTimer) return alert("Você já tem uma tarefa em execução! Termine-a primeiro.");
-        
-        // Salva temporariamente onde estamos clicando
+    function openCreateActionModal(skillId, compId, type) {
         document.getElementById('targetSkillId').value = skillId;
         document.getElementById('targetCompId').value = compId;
+        document.getElementById('taskType').value = type;
+        document.getElementById('newTaskDesc').value = '';
         
-        const modal = new bootstrap.Modal(document.getElementById('durationModal'));
-        modal.show();
+        const label = document.getElementById('modalTaskLabel');
+        const warning = document.getElementById('challengeWarning');
+        const modalTitle = document.querySelector('#createTaskModal .modal-title');
+
+        if (type === 'task') {
+            modalTitle.innerText = "Nova Tarefa de Foco";
+            label.innerText = "O que você vai estudar/praticar?";
+            warning.classList.add('d-none');
+            document.getElementById('newTaskDesc').placeholder = "Ex: Ler 10 páginas...";
+        } else {
+            modalTitle.innerText = "Novo Desafio (Disciplina)";
+            label.innerText = "Qual é o desafio do dia?";
+            warning.classList.remove('d-none');
+            document.getElementById('newTaskDesc').placeholder = "Ex: Sem açúcar por 24h...";
+        }
+        
+        new bootstrap.Modal(document.getElementById('createTaskModal')).show();
     }
 
-    // 2. Configurar e Iniciar Timer
+    function commitAction() {
+        const skillId = parseInt(document.getElementById('targetSkillId').value);
+        const compId = parseInt(document.getElementById('targetCompId').value);
+        const type = document.getElementById('taskType').value;
+        const desc = document.getElementById('newTaskDesc').value;
+
+        if(!desc) return alert("Descrição obrigatória.");
+
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+
+        const today = getLocalDayKey();
+
+        if (type === 'task') {
+            comp.activeTask = { desc: desc, date: today };
+        } else {
+            comp.activeChallenge = { desc: desc, date: today };
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
+        saveAll();
+        render();
+    }
+
+    // --- TIMER LOGIC (TASKS) ---
+    function openDurationModal(skillId, compId) {
+        if (activeTimer) return alert("Já existe um cronômetro rodando.");
+        document.getElementById('targetSkillId').value = skillId;
+        document.getElementById('targetCompId').value = compId;
+        new bootstrap.Modal(document.getElementById('durationModal')).show();
+    }
+
     function startTimerSetup(minutes, xpReward) {
         const skillId = parseInt(document.getElementById('targetSkillId').value);
         const compId = parseInt(document.getElementById('targetCompId').value);
-        
-        // Busca info da tarefa
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
         
-        // Fecha modal de seleção
         bootstrap.Modal.getInstance(document.getElementById('durationModal')).hide();
 
-        // Cria objeto do Timer
         activeTimer = {
-            skillId: skillId,
-            compId: compId,
+            skillId, compId,
             taskName: comp.activeTask.desc,
             durationTotal: minutes * 60,
             remaining: minutes * 60,
-            xpReward: xpReward,
+            xpReward,
             status: 'running',
             lastTick: Date.now()
         };
 
         saveAll();
-        resumeTimerUI(); // Abre o modal do timer e inicia o loop
-        render(); // Atualiza a UI principal (bloqueia outros botões)
+        resumeTimerUI();
+        render();
     }
 
-    // 3. UI do Timer e Loop
     function resumeTimerUI() {
-        const timerModal = new bootstrap.Modal(document.getElementById('timerModal'));
-        timerModal.show();
-        
+        new bootstrap.Modal(document.getElementById('timerModal')).show();
         document.getElementById('timerTaskTitle').innerText = activeTimer.taskName;
         updateTimerDisplay();
-
-        if (activeTimer.status === 'running') {
-            startInterval();
-        } else {
+        if (activeTimer.status === 'running') startInterval();
+        else {
             document.getElementById('btnPause').innerHTML = '<i class="bi bi-play-fill"></i> Continuar';
             document.getElementById('timerDisplay').classList.remove('pulse-red');
         }
@@ -430,8 +484,7 @@
 
     function startInterval() {
         if (timerInterval) clearInterval(timerInterval);
-        activeTimer.lastTick = Date.now(); // Reseta o tick para evitar saltos
-        
+        activeTimer.lastTick = Date.now();
         document.getElementById('btnPause').innerHTML = '<i class="bi bi-pause-fill"></i> Pausar';
         document.getElementById('timerDisplay').classList.remove('pulse-red');
 
@@ -443,13 +496,11 @@
             if (activeTimer.remaining > 0) {
                 activeTimer.remaining -= delta;
                 updateTimerDisplay();
-                
-                // Salva a cada 5s para performance
                 if (Math.floor(activeTimer.remaining) % 5 === 0) saveAll();
             } else {
                 finishTimerSuccess();
             }
-        }, 1000); // Check a cada 1s, mas usa delta time para precisão
+        }, 1000);
     }
 
     function updateTimerDisplay() {
@@ -457,30 +508,26 @@
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = (seconds % 60).toString().padStart(2, '0');
         document.getElementById('timerDisplay').innerText = `${m}:${s}`;
-        
         const percent = (activeTimer.remaining / activeTimer.durationTotal) * 100;
         document.getElementById('timerProgressBar').style.width = `${percent}%`;
     }
 
     function togglePauseTimer() {
         if (activeTimer.status === 'running') {
-            // Pausar
             clearInterval(timerInterval);
             activeTimer.status = 'paused';
             document.getElementById('btnPause').innerHTML = '<i class="bi bi-play-fill"></i> Continuar';
             document.getElementById('timerDisplay').classList.add('pulse-red');
-            saveAll();
         } else {
-            // Retomar
             activeTimer.status = 'running';
-            activeTimer.lastTick = Date.now(); // Reseta tick
+            activeTimer.lastTick = Date.now();
             startInterval();
-            saveAll();
         }
+        saveAll();
     }
 
     function cancelTimer() {
-        if(!confirm("Tem certeza que deseja desistir? Nenhum XP será ganho.")) return;
+        if(!confirm("Desistir? Nenhum XP será ganho.")) return;
         clearInterval(timerInterval);
         activeTimer = null;
         saveAll();
@@ -490,85 +537,57 @@
 
     function finishTimerSuccess() {
         clearInterval(timerInterval);
-        
-        // Aplica recompensas
         const skill = data.find(s => s.id === activeTimer.skillId);
         const comp = skill.competences.find(c => c.id === activeTimer.compId);
-        const xpGained = activeTimer.xpReward;
+        const xp = activeTimer.xpReward;
 
-        const now = new Date();
         comp.history.push({
+            type: 'task',
             task: activeTimer.taskName,
-            duration: activeTimer.durationTotal / 60,
-            xp: xpGained,
-            date: now.toISOString(),
-            timestamp: now.toISOString(),
+            xp: xp,
+            date: new Date().toISOString(),
             completionDate: getLocalDayKey()
         });
 
-        const oldRank = getRank(comp.xp, COMP_RANKS);
-        comp.xp += xpGained;
-        comp.activeTask = null; // Limpa tarefa
-        const newRank = getRank(comp.xp, COMP_RANKS);
-
-        // Atualiza Streak
+        comp.xp += xp;
+        comp.activeTask = null;
         updateStreakOnFinish();
-
-        // Limpa timer
+        
         activeTimer = null;
         saveAll();
-
-        // UI Final
         bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide();
         render();
 
         triggerConfettiMinor();
-        setTimeout(() => {
-            alert(`SESSÃO CONCLUÍDA! +${xpGained} XP em ${comp.name}.`);
-            if (newRank.name !== oldRank.name) {
-                triggerConfettiMajor();
-                alert(`SUBIU DE RANK! Agora você é ${newRank.name}!`);
-            }
-        }, 500);
+        setTimeout(() => alert(`+${xp} XP! Tarefa concluída.`), 500);
     }
 
-
-    // --- CRUD BÁSICO ---
-    function addSkill() {
-        const name = document.getElementById('skillNameInput').value;
-        if (!name) return;
-        data.push({ id: Date.now(), name: name, competences: [] });
-        document.getElementById('skillNameInput').value = '';
-        bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
-        saveAll();
-        render();
-    }
-
-    function addCompetence() {
-        const skillId = parseInt(document.getElementById('currentSkillId').value);
-        const name = document.getElementById('compNameInput').value;
-        if (!name) return;
-        const skill = data.find(s => s.id === skillId);
-        skill.competences.push({ id: Date.now(), name: name, xp: 0, history: [], activeTask: null });
-        document.getElementById('compNameInput').value = '';
-        bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
-        saveAll();
-        render();
-    }
-
-    function commitTask() {
-        const skillId = parseInt(document.getElementById('targetSkillId').value);
-        const compId = parseInt(document.getElementById('targetCompId').value);
-        const desc = document.getElementById('newTaskDesc').value;
-        if(!desc) return alert("Defina a tarefa.");
-        
+    // --- CHALLENGE LOGIC ---
+    function resolveChallenge(skillId, compId, success) {
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
-        comp.activeTask = { desc: desc, date: getLocalDayKey() };
+        const xp = success ? 1 : -1;
+
+        if (!success && !confirm("Declarar falha? Você perderá 1 XP.")) return;
+
+        comp.history.push({
+            type: 'challenge',
+            task: comp.activeChallenge.desc,
+            xp: xp,
+            status: success ? 'success' : 'failed',
+            date: new Date().toISOString(),
+            completionDate: getLocalDayKey()
+        });
+
+        comp.xp = Math.max(0, comp.xp + xp);
+        comp.activeChallenge = null;
+
+        if (success) updateStreakOnFinish();
         
-        bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
         saveAll();
         render();
+
+        if (success) triggerConfettiMinor();
     }
 
     function cancelTask(skillId, compId) {
@@ -580,24 +599,58 @@
         render();
     }
 
+    // --- UTILS & RANK MODAL ---
+    function showRankInfo() {
+        const tbody = document.getElementById('rankTableBody');
+        tbody.innerHTML = '';
+        SKILL_RANKS.forEach(r => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><span class="badge" style="background-color:${r.color}; color: ${r.color === '#f8f9fa' ? '#000' : '#fff'}">${r.name}</span></td>
+                    <td>${r.minXp.toLocaleString()} XP</td>
+                </tr>
+            `;
+        });
+        new bootstrap.Modal(document.getElementById('rankInfoModal')).show();
+    }
+
+    // --- CRUD ---
+    function addSkill() {
+        const name = document.getElementById('skillNameInput').value;
+        if (!name) return;
+        data.push({ id: Date.now(), name: name, competences: [] });
+        document.getElementById('skillNameInput').value = '';
+        bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
+        saveAll(); render();
+    }
+
+    function addCompetence() {
+        const skillId = parseInt(document.getElementById('currentSkillId').value);
+        const name = document.getElementById('compNameInput').value;
+        if (!name) return;
+        const skill = data.find(s => s.id === skillId);
+        skill.competences.push({ id: Date.now(), name: name, xp: 0, history: [], activeTask: null, activeChallenge: null });
+        document.getElementById('compNameInput').value = '';
+        bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
+        saveAll(); render();
+    }
+
     function deleteSkill(id) { if(confirm("Apagar Área?")) { data = data.filter(s => s.id !== id); saveAll(); render(); } }
     function deleteComp(skillId, compId) {
         if(confirm("Apagar Competência?")) {
             const skill = data.find(s => s.id === skillId);
             skill.competences = skill.competences.filter(c => c.id !== compId);
-            saveAll();
-            render();
+            saveAll(); render();
         }
     }
 
-    // --- UTILS (Streak, Backup, Modais Auxiliares) ---
+    // --- STREAK & BACKUP ---
     function checkStreakIntegrity() {
         const today = getLocalDayKey();
         const yesterday = getLocalDayKey(-1);
         if (!streak.lastDate) return;
         if (streak.lastDate !== today && streak.lastDate !== yesterday) {
-            streak.count = 0;
-            saveAll();
+            streak.count = 0; saveAll();
         }
     }
 
@@ -608,62 +661,33 @@
         if (streak.lastDate === yesterday) streak.count++;
         else streak.count = 1;
         streak.lastDate = today;
-        saveAll();
-        updateStreakDisplay();
+        saveAll(); updateStreakDisplay();
     }
 
     function updateStreakDisplay() {
         const el = document.getElementById('streakDisplay');
-        const countEl = document.getElementById('streakCount');
-        countEl.innerText = streak.count;
+        document.getElementById('streakCount').innerText = streak.count;
         if (streak.count > 0) el.classList.remove('streak-broken');
         else el.classList.add('streak-broken');
     }
 
-    // Modais e Helpers
-    function openSkillModal() { new bootstrap.Modal(document.getElementById('skillModal')).show(); }
-    function openCompModal(skillId) { 
-        document.getElementById('currentSkillId').value = skillId; 
-        new bootstrap.Modal(document.getElementById('compModal')).show(); 
-    }
-    function openCreateTaskModal(skillId, compId) {
-        document.getElementById('targetSkillId').value = skillId;
-        document.getElementById('targetCompId').value = compId;
-        document.getElementById('newTaskDesc').value = '';
-        new bootstrap.Modal(document.getElementById('createTaskModal')).show();
-    }
-    
-    function triggerConfettiMinor() { confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] }); }
-    function triggerConfettiMajor() {
-        const end = Date.now() + 2000;
-        (function frame() {
-            confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffd700'] });
-            confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffd700'] });
-            if (Date.now() < end) requestAnimationFrame(frame);
-        }());
-    }
-
-    // Backup
     function exportData() {
         if (data.length === 0) return alert("Nada para exportar.");
-        const backupPackage = { version: "v8.0", skills: data, streak: streak };
-        const blob = new Blob([JSON.stringify(backupPackage, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `protocolo_deepwork_${getLocalDayKey()}.json`;
+        const blob = new Blob([JSON.stringify({ version: "v9.0", skills: data, streak: streak }, null, 2)], { type: "application/json" });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `protocolo_v9_${getLocalDayKey()}.json`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
+    
     function importData(input) {
-        const file = input.files[0];
-        if(!file) return;
+        const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const json = JSON.parse(e.target.result);
                 if(json.skills) { data = json.skills; streak = json.streak || {count:0}; }
-                else { data = json; } // Legacy support
+                else { data = json; }
                 saveAll(); render(); updateStreakDisplay(); alert("Importado!");
-            } catch(err) { alert("Erro ao importar."); }
+            } catch(err) { alert("Erro."); }
         };
         reader.readAsText(file);
     }
@@ -676,21 +700,25 @@
             if(skill.competences) skill.competences.forEach(comp => {
                 if(comp.history) comp.history.forEach(entry => {
                     allHistory.push({
-                        skillName: skill.name, compName: comp.name, task: entry.task, xp: entry.xp || 10, date: entry.timestamp || entry.date 
+                        skillName: skill.name, compName: comp.name, task: entry.task, xp: entry.xp, date: entry.timestamp || entry.date, type: entry.type || 'task'
                     });
                 });
             });
         });
         allHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const top50 = allHistory.slice(0, 50);
-        if (top50.length === 0) list.innerHTML = '<li class="list-group-item text-center text-muted">Vazio.</li>';
-        else top50.forEach(h => {
-            const d = new Date(h.date);
-            const str = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-            list.innerHTML += `<li class="list-group-item"><div class="d-flex justify-content-between"><span class="badge bg-secondary mb-1">${h.skillName} > ${h.compName}</span><small class="text-muted">${str}</small></div><div class="d-flex justify-content-between"><span>${h.task}</span><span class="text-success fw-bold">+${h.xp} XP</span></div></li>`;
+        allHistory.slice(0, 50).forEach(h => {
+            const date = new Date(h.date).toLocaleDateString();
+            const color = h.xp > 0 ? 'text-success' : 'text-danger';
+            const icon = h.type === 'challenge' ? '<i class="bi bi-lightning-fill text-warning"></i>' : '<i class="bi bi-clock text-primary"></i>';
+            list.innerHTML += `<li class="list-group-item d-flex justify-content-between">
+                <div>${icon} <small class="text-muted">${date}</small> <br> ${h.task}</div>
+                <div class="${color} fw-bold">${h.xp > 0 ? '+' : ''}${h.xp} XP</div>
+            </li>`;
         });
         new bootstrap.Modal(document.getElementById('historyModal')).show();
     }
+
+    function triggerConfettiMinor() { confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] }); }
 
     // --- RENDER ---
     function render() {
@@ -705,98 +733,88 @@
         }
 
         data.forEach(skill => {
-            // SOMA XP HABILIDADE
             const totalSkillXp = skill.competences ? skill.competences.reduce((acc, curr) => acc + (curr.xp || 0), 0) : 0;
-            // Rank Habilidade
             const skillRank = getRank(totalSkillXp, SKILL_RANKS);
-
             let compsHtml = '';
 
             if (skill.competences && skill.competences.length > 0) {
                 skill.competences.forEach(comp => {
                     const rank = getRank(comp.xp, COMP_RANKS);
-                    const nextRank = COMP_RANKS.find(r => r.minXp > comp.xp);
-                    
-                    let progress = 100; 
-                    let nextText = "Lenda";
-                    if (nextRank) {
-                        const total = nextRank.minXp - rank.minXp || 100;
-                        const current = comp.xp - rank.minXp;
-                        progress = Math.max(5, (current / total) * 100);
-                        nextText = `Próximo: ${nextRank.minXp} XP`;
-                    }
-
-                    // Verifica se já fez hoje
-                    const lastHistory = comp.history.length ? comp.history[comp.history.length-1] : null;
-                    let doneToday = false;
-                    if (lastHistory) {
-                        if (lastHistory.completionDate) doneToday = lastHistory.completionDate === todayKey;
-                        else doneToday = lastHistory.date.startsWith(todayKey); 
-                    }
-
-                    let actionArea = '';
-                    
-                    if (doneToday) {
-                        actionArea = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 opacity-75"><i class="bi bi-check-all"></i> Concluído Hoje</button>`;
-                    } else if (comp.activeTask) {
-                        // TAREFA PENDENTE -> BOTÃO INICIAR (ABRE TEMPO)
-                        const disabledAttr = isTimerRunning ? 'disabled' : '';
-                        const btnText = isTimerRunning ? 'Tarefa em Andamento...' : '<i class="bi bi-play-fill"></i> Iniciar';
-                        
-                        actionArea = `
-                        <div class="pending-task-box">
-                            <div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary btn-sm flex-grow-1" onclick="openDurationModal(${skill.id}, ${comp.id})" ${disabledAttr}>
-                                    ${btnText}
-                                </button>
-                                <button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})" ${disabledAttr}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>`;
-                    } else {
-                        // SEM TAREFA -> CRIAR
-                         actionArea = `<button class="btn btn-outline-primary btn-sm w-100" onclick="openCreateTaskModal(${skill.id}, ${comp.id})"><i class="bi bi-plus-circle"></i> Planejar Tarefa</button>`;
-                    }
-                    
                     const borderClass = rank.minXp >= 10000 ? 'rank-up-anim' : '';
+
+                    // CHECK HISTORY FOR TODAY
+                    // Task Done Today?
+                    const taskDone = comp.history.some(h => (h.type === 'task' || !h.type) && h.completionDate === todayKey);
+                    // Challenge Done Today?
+                    const challengeDone = comp.history.some(h => h.type === 'challenge' && h.completionDate === todayKey);
+
+                    // --- TASK SLOT HTML ---
+                    let taskHtml = '';
+                    if (taskDone) {
+                        taskHtml = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 mb-3"><i class="bi bi-check-circle-fill"></i> Foco Diário Feito</button>`;
+                    } else if (comp.activeTask) {
+                        const btnState = isTimerRunning ? 'disabled' : '';
+                        const btnLabel = isTimerRunning ? 'Aguarde...' : '<i class="bi bi-play-fill"></i> Iniciar';
+                        taskHtml = `
+                            <div class="pending-task-box">
+                                <div class="small text-muted mb-1">FOCO</div>
+                                <div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm flex-grow-1" onclick="openDurationModal(${skill.id}, ${comp.id})" ${btnState}>${btnLabel}</button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})" ${btnState}><i class="bi bi-trash"></i></button>
+                                </div>
+                            </div>`;
+                    } else {
+                        taskHtml = `<button class="btn btn-outline-primary btn-sm w-100 mb-3" onclick="openCreateActionModal(${skill.id}, ${comp.id}, 'task')"><i class="bi bi-plus-circle"></i> Tarefa Foco (+XP)</button>`;
+                    }
+
+                    // --- CHALLENGE SLOT HTML ---
+                    let challengeHtml = '';
+                    if (challengeDone) {
+                        challengeHtml = `<button class="btn btn-outline-secondary btn-sm w-100 disabled border-0"><i class="bi bi-flag-fill"></i> Desafio Encerrado</button>`;
+                    } else if (comp.activeChallenge) {
+                        challengeHtml = `
+                            <div class="pending-challenge-box">
+                                <div class="small text-muted mb-1" style="color: #a77dff !important;">DESAFIO</div>
+                                <div class="fst-italic mb-2 text-white small">"${comp.activeChallenge.desc}"</div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success btn-sm flex-grow-1" onclick="resolveChallenge(${skill.id}, ${comp.id}, true)"><i class="bi bi-check-lg"></i></button>
+                                    <button class="btn btn-danger btn-sm flex-grow-1" onclick="resolveChallenge(${skill.id}, ${comp.id}, false)"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>`;
+                    } else {
+                        challengeHtml = `<button class="btn btn-outline-light btn-sm w-100" style="border-color: #666;" onclick="openCreateActionModal(${skill.id}, ${comp.id}, 'challenge')"><i class="bi bi-lightning-charge"></i> Desafio (Hard)</button>`;
+                    }
 
                     compsHtml += `
                     <div class="col-md-6 col-lg-4" data-id="${comp.id}">
                         <div class="card p-3 h-100 ${borderClass}">
                             <div class="d-flex justify-content-between mb-2">
-                                <h5 class="fw-bold mb-0 text-white text-truncate"><i class="bi bi-grip-vertical text-muted me-1"></i>${comp.name}</h5>
+                                <h5 class="fw-bold mb-0 text-white text-truncate">${comp.name}</h5>
                                 <i class="bi bi-trash text-secondary small" style="cursor:pointer" onclick="deleteComp(${skill.id}, ${comp.id})"></i>
                             </div>
                             <div class="d-flex align-items-center mb-3">
                                 <i class="${rank.icon} me-2 fs-4" style="color:${rank.color}"></i>
-                                <div class="line-height-1">
-                                    <div class="small text-muted text-uppercase" style="font-size:0.65rem">Rank</div>
-                                    <div style="color:${rank.color}; font-weight:bold; font-size:0.9rem">${rank.name}</div>
-                                </div>
+                                <div><div class="small text-muted" style="font-size:0.65rem">Rank</div><div style="color:${rank.color}; font-weight:bold; font-size:0.9rem">${rank.name}</div></div>
                                 <div class="ms-auto fw-bold text-light">${comp.xp} XP</div>
                             </div>
-                            <div class="progress bg-dark mb-1" style="height:6px">
-                                <div class="progress-bar" style="width: ${progress}%; background-color: ${rank.color}"></div>
-                            </div>
-                            <div class="text-end text-muted small mb-3 fst-italic" style="font-size:0.7rem">${nextText}</div>
-                            <div class="mt-auto pt-2 border-top border-secondary border-opacity-25">${actionArea}</div>
+                            <hr class="border-secondary opacity-25">
+                            ${taskHtml}
+                            ${challengeHtml}
                         </div>
                     </div>`;
                 });
             } else {
-                compsHtml = `<div class="col-12 text-muted fst-italic small">Adicione competências.</div>`;
+                compsHtml = `<div class="col-12 text-muted small">Adicione competências.</div>`;
             }
 
             container.innerHTML += `
             <div class="mb-5 fade-in">
                 <div class="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
                     <h3 class="m-0 text-white fw-light fs-4">${skill.name}</h3>
-                    <span class="rank-badge-skill" style="color:${skillRank.color}; border-color:${skillRank.color}">
-                        ${skillRank.name}
-                    </span>
-                    <span class="ms-auto text-secondary small me-3">${totalSkillXp} XP Total</span>
+                    <i class="bi bi-info-circle text-muted ms-2" style="cursor:pointer; font-size:0.9rem" onclick="showRankInfo()"></i>
+                    <span class="rank-badge-skill ms-2" style="color:${skillRank.color}; border-color:${skillRank.color}">${skillRank.name}</span>
+                    <span class="ms-auto text-secondary small me-3">${totalSkillXp} XP</span>
                     <div>
                         <button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i></button>
                         <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button>
@@ -805,26 +823,18 @@
                 <div class="row g-3 sortable-list" id="sortable-skill-${skill.id}">${compsHtml}</div>
             </div>`;
         });
-
-        // Re-init Sortable
+        
         data.forEach(skill => {
             const el = document.getElementById(`sortable-skill-${skill.id}`);
-            if(el) {
-                new Sortable(el, {
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    handle: '.card',
-                    onEnd: function(evt) {
-                        const newOrderIds = Array.from(evt.to.children).map(item => parseInt(item.getAttribute('data-id')));
-                        const currentSkill = data.find(s => s.id === skill.id);
-                        if(currentSkill && currentSkill.competences) {
-                            const compMap = new Map(currentSkill.competences.map(c => [c.id, c]));
-                            currentSkill.competences = newOrderIds.map(id => compMap.get(id)).filter(c => c !== undefined);
-                            saveAll(); 
-                        }
-                    }
-                });
-            }
+            if(el) new Sortable(el, { animation: 150, ghostClass: 'sortable-ghost', handle: '.card', onEnd: (evt) => {
+                const newOrderIds = Array.from(evt.to.children).map(i => parseInt(i.getAttribute('data-id')));
+                const s = data.find(x => x.id === skill.id);
+                if(s) {
+                    const map = new Map(s.competences.map(c => [c.id, c]));
+                    s.competences = newOrderIds.map(id => map.get(id)).filter(c => c);
+                    saveAll();
+                }
+            }});
         });
     }
 
