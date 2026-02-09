@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocolo 1%</title>
+    <title>Protocolo 1% - Grand Master Edition</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,13 +13,14 @@
         :root {
             --bg-body: #121212;
             --bg-card: #1e1e1e;
-            --bg-input: #2d2d2d;
+            --bg-input: #333333; /* Fundo mais claro para inputs */
             --text-main: #ffffff;
             --text-muted: #a0a0a0;
             --gold: #ffd700;
             --fire: #ff4500;
             --accent: #0d6efd;
-            --challenge: #6f42c1; /* Roxo para desafios */
+            --challenge: #6f42c1;
+            --material: #d63384;
         }
 
         body {
@@ -34,25 +35,31 @@
 
         .card, .modal-content, .list-group-item {
             background-color: var(--bg-card);
-            border: 1px solid #333;
+            border: 1px solid #444;
             color: var(--text-main);
         }
 
-        .list-group-item { border-bottom: 1px solid #444; }
+        .list-group-item { border-bottom: 1px solid #555; }
 
-        .form-control {
+        /* INPUT FIX: Melhor contraste */
+        .form-control, .form-select {
             background-color: var(--bg-input) !important;
-            border: 1px solid #444;
+            border: 1px solid #555;
             color: #fff !important;
+            font-size: 1rem;
         }
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
             border-color: var(--accent);
+            background-color: #3b3b3b !important;
+        }
+        ::placeholder {
+            color: #cccccc !important; /* Placeholder bem visível */
+            opacity: 0.7;
         }
 
         .btn-close { filter: invert(1); }
 
-        /* Streak & Badges */
         .streak-badge {
             background: linear-gradient(135deg, #ff4b1f, #ff9068);
             color: white;
@@ -64,31 +71,17 @@
             box-shadow: 0 0 15px rgba(255, 75, 31, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .streak-broken {
-            background: #333;
-            color: #888;
-            box-shadow: none;
-            border: 1px solid #444;
-        }
+        .streak-broken { background: #333; color: #888; box-shadow: none; border: 1px solid #444; }
 
         .rank-badge-skill {
-            font-size: 0.8rem;
-            padding: 5px 10px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-left: 10px;
-            vertical-align: middle;
+            font-size: 0.8rem; padding: 5px 10px; border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-left: 10px; vertical-align: middle; white-space: nowrap;
         }
 
-        /* Timer Styles */
         .timer-display {
-            font-family: 'Courier New', monospace;
-            font-size: 4rem;
-            font-weight: bold;
-            color: var(--text-main);
-            text-shadow: 0 0 20px rgba(13, 110, 253, 0.5);
-            margin: 20px 0;
+            font-family: 'Courier New', monospace; font-size: 4rem; font-weight: bold;
+            color: var(--text-main); text-shadow: 0 0 20px rgba(13, 110, 253, 0.5); margin: 20px 0;
         }
         .pulse-red { animation: pulse-red 1s infinite; }
         @keyframes pulse-red {
@@ -97,23 +90,9 @@
             100% { text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
         }
 
-        /* Pending Boxes */
-        .pending-task-box {
-            background-color: rgba(13, 110, 253, 0.1);
-            border-left: 3px solid var(--accent);
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .pending-challenge-box {
-            background-color: rgba(111, 66, 193, 0.15);
-            border-left: 3px solid var(--challenge);
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
+        .pending-task-box { background-color: rgba(13, 110, 253, 0.1); border-left: 3px solid var(--accent); padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .pending-challenge-box { background-color: rgba(111, 66, 193, 0.15); border-left: 3px solid var(--challenge); padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        
         .rank-up-anim { animation: pulse-gold 2s infinite; border: 1px solid var(--gold) !important; }
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); border-color: var(--gold); }
@@ -122,20 +101,19 @@
         }
 
         .sortable-ghost { opacity: 0.4; background-color: #333; border: 1px dashed #666; }
-        .card { cursor: grab; } 
-        .card:active { cursor: grabbing; }
-        .card button { cursor: pointer; }
+        .card { cursor: grab; } .card:active { cursor: grabbing; } .card button { cursor: pointer; }
         
-        .section-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #666;
-            margin-bottom: 5px;
-            display: block;
-            border-bottom: 1px solid #333;
-            padding-bottom: 2px;
+        .expiry-warning { color: #ffc107; font-size: 0.75rem; font-weight: bold; }
+        .expiry-danger { color: #dc3545; font-size: 0.75rem; font-weight: bold; animation: pulse-red 2s infinite; }
+
+        /* Scroll no Modal de Ranks */
+        .rank-scroll-area {
+            max-height: 400px;
+            overflow-y: auto;
         }
+        .rank-scroll-area::-webkit-scrollbar { width: 8px; }
+        .rank-scroll-area::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .rank-scroll-area::-webkit-scrollbar-track { background: #222; }
     </style>
 </head>
 <body>
@@ -145,7 +123,7 @@
         <div class="row align-items-center g-3">
             <div class="col-md-5">
                 <h1 class="display-6 fw-bold mb-0"><i class="bi bi-graph-up-arrow text-primary"></i> Protocolo 1%</h1>
-                <p class="text-muted small mb-0">Foco Profundo & Disciplina.</p>
+                <p class="text-muted small mb-0">Legado, Foco & Disciplina.</p>
             </div>
             
             <div class="col-md-2 text-md-center">
@@ -231,17 +209,56 @@
             <div class="modal-body">
                 <input type="hidden" id="targetSkillId">
                 <input type="hidden" id="targetCompId">
-                <input type="hidden" id="taskType"> <p id="modalTaskLabel" class="text-muted mb-2">Descrição:</p>
+                <input type="hidden" id="taskType">
+                
+                <p id="modalTaskLabel" class="text-muted mb-2">Descrição:</p>
                 <input type="text" id="newTaskDesc" class="form-control" placeholder="...">
                 <div id="challengeWarning" class="alert alert-dark mt-3 small d-none">
                     <i class="bi bi-exclamation-triangle-fill text-warning"></i> 
-                    <strong>Atenção:</strong> Desafios não podem ser excluídos. Se não cumprir, perderá 1 XP.
+                    <strong>Atenção:</strong> Prazo de 3 dias. Se expirar, <strong>-1 XP</strong>.
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary w-100" onclick="commitAction()">
                     <i class="bi bi-save"></i> Confirmar
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="materialModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--material);"><i class="bi bi-journal-bookmark-fill"></i> Registrar Conhecimento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="matSkillId">
+                <input type="hidden" id="matCompId">
+                
+                <div class="mb-3">
+                    <label class="text-muted small">Tipo</label>
+                    <select id="matType" class="form-select">
+                        <option value="Livro">Livro</option>
+                        <option value="Curso">Curso</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small">Título</label>
+                    <input type="text" id="matTitle" class="form-control" placeholder="Ex: Pai Rico, Pai Pobre">
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small" id="matMetricLabel">Páginas / Horas</label>
+                    <input type="number" id="matMetric" class="form-control" placeholder="Ex: 250">
+                </div>
+                <div class="alert alert-dark small border-secondary">
+                    <i class="bi bi-gift-fill text-success"></i> Recompensa: <strong>+50 XP</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary w-100" onclick="commitMaterial()">Registrar (+50 XP)</button>
             </div>
         </div>
     </div>
@@ -255,24 +272,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <p class="text-muted mb-4">Selecione o tempo de dedicação total.</p>
                 <div class="d-grid gap-3">
-                    <button class="btn btn-outline-light p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(15, 5)">
-                        <span><i class="bi bi-stopwatch"></i> 15 Min</span>
-                        <span class="badge bg-secondary">+5 XP</span>
-                    </button>
-                    <button class="btn btn-outline-primary p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(30, 10)">
-                        <span><i class="bi bi-stopwatch-fill"></i> 30 Min</span>
-                        <span class="badge bg-primary">+10 XP</span>
-                    </button>
-                    <button class="btn btn-outline-warning p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(45, 15)">
-                        <span><i class="bi bi-fire"></i> 45 Min</span>
-                        <span class="badge bg-warning text-dark">+15 XP</span>
-                    </button>
-                    <button class="btn btn-outline-danger p-3 d-flex justify-content-between align-items-center" onclick="startTimerSetup(60, 25)">
-                        <span><i class="bi bi-lightning-charge-fill"></i> 60 Min</span>
-                        <span class="badge bg-danger">+25 XP</span>
-                    </button>
+                    <button class="btn btn-outline-light p-3 d-flex justify-content-between" onclick="startTimerSetup(15, 5)"><span>15 Min</span><span class="badge bg-secondary">+5 XP</span></button>
+                    <button class="btn btn-outline-primary p-3 d-flex justify-content-between" onclick="startTimerSetup(30, 10)"><span>30 Min</span><span class="badge bg-primary">+10 XP</span></button>
+                    <button class="btn btn-outline-warning p-3 d-flex justify-content-between" onclick="startTimerSetup(45, 15)"><span>45 Min</span><span class="badge bg-warning text-dark">+15 XP</span></button>
+                    <button class="btn btn-outline-danger p-3 d-flex justify-content-between" onclick="startTimerSetup(60, 25)"><span>60 Min</span><span class="badge bg-danger">+25 XP</span></button>
                 </div>
             </div>
         </div>
@@ -283,22 +287,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-primary">
             <div class="modal-header bg-dark border-bottom border-secondary">
-                <h5 class="modal-title"><i class="bi bi-record-circle text-danger blink"></i> Executando Tarefa</h5>
+                <h5 class="modal-title"><i class="bi bi-record-circle text-danger blink"></i> Executando</h5>
             </div>
             <div class="modal-body text-center bg-black rounded-bottom">
-                <h4 id="timerTaskTitle" class="text-white mb-3 fw-light mt-3">Lendo Livro</h4>
+                <h4 id="timerTaskTitle" class="text-white mb-3 fw-light mt-3">Lendo</h4>
                 <div id="timerDisplay" class="timer-display">00:00</div>
-                <div class="progress mb-3" style="height: 5px;">
-                    <div id="timerProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
-                </div>
-                
+                <div class="progress mb-3" style="height: 5px;"><div id="timerProgressBar" class="progress-bar bg-primary" style="width: 100%"></div></div>
                 <div class="d-flex justify-content-center gap-3 mt-4 mb-3">
-                    <button id="btnPause" class="btn btn-outline-light" onclick="togglePauseTimer()">
-                        <i class="bi bi-pause-fill"></i> Pausar
-                    </button>
-                    <button class="btn btn-outline-danger" onclick="cancelTimer()">
-                        <i class="bi bi-x-circle"></i> Desistir
-                    </button>
+                    <button id="btnPause" class="btn btn-outline-light" onclick="togglePauseTimer()">Pausar</button>
+                    <button class="btn btn-outline-danger" onclick="cancelTimer()">Desistir</button>
                 </div>
             </div>
         </div>
@@ -306,15 +303,15 @@
 </div>
 
 <div class="modal fade" id="rankInfoModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Sistema de Faixas</h5>
+                <h5 class="modal-title">Graduação de Habilidades</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <table class="table table-dark table-striped mb-0">
-                    <thead><tr><th>Faixa</th><th>XP Necessário</th></tr></thead>
+            <div class="modal-body p-0 rank-scroll-area">
+                <table class="table table-dark table-striped mb-0 small">
+                    <thead><tr><th>Graduação</th><th class="text-end">XP Total</th></tr></thead>
                     <tbody id="rankTableBody"></tbody>
                 </table>
             </div>
@@ -341,19 +338,57 @@
         { name: "Grão Mestre", minXp: 10000, color: "#ffd700", icon: "bi-trophy-fill" }
     ];
 
+    // NOVO SISTEMA DE FAIXAS E GRAUS (26 Níveis até 100k XP)
     const SKILL_RANKS = [
-        { name: "Faixa-Branca", minXp: 0, color: "#f8f9fa" },
-        { name: "Faixa-Azul", minXp: 500, color: "#0d6efd" },
-        { name: "Faixa-Roxa", minXp: 2500, color: "#8a2be2" },
-        { name: "Faixa-Marrom", minXp: 10000, color: "#8B4513" },
-        { name: "Faixa-Preta", minXp: 25000, color: "#343a40" },
-        { name: "Faixa-Coral", minXp: 50000, color: "#ff4500" } 
+        // BRANCA (0 - 1.999) - Steps 400
+        { name: "Faixa Branca", minXp: 0, color: "#f8f9fa" },
+        { name: "Faixa Branca 1º Grau", minXp: 400, color: "#f8f9fa" },
+        { name: "Faixa Branca 2º Grau", minXp: 800, color: "#f8f9fa" },
+        { name: "Faixa Branca 3º Grau", minXp: 1200, color: "#f8f9fa" },
+        { name: "Faixa Branca 4º Grau", minXp: 1600, color: "#f8f9fa" },
+
+        // AZUL (2.000 - 9.999) - Steps 1.600
+        { name: "Faixa Azul", minXp: 2000, color: "#0d6efd" },
+        { name: "Faixa Azul 1º Grau", minXp: 3600, color: "#0d6efd" },
+        { name: "Faixa Azul 2º Grau", minXp: 5200, color: "#0d6efd" },
+        { name: "Faixa Azul 3º Grau", minXp: 6800, color: "#0d6efd" },
+        { name: "Faixa Azul 4º Grau", minXp: 8400, color: "#0d6efd" },
+
+        // ROXA (10.000 - 29.999) - Steps 4.000
+        { name: "Faixa Roxa", minXp: 10000, color: "#8a2be2" },
+        { name: "Faixa Roxa 1º Grau", minXp: 14000, color: "#8a2be2" },
+        { name: "Faixa Roxa 2º Grau", minXp: 18000, color: "#8a2be2" },
+        { name: "Faixa Roxa 3º Grau", minXp: 22000, color: "#8a2be2" },
+        { name: "Faixa Roxa 4º Grau", minXp: 26000, color: "#8a2be2" },
+
+        // MARROM (30.000 - 59.999) - Steps 6.000
+        { name: "Faixa Marrom", minXp: 30000, color: "#8B4513" },
+        { name: "Faixa Marrom 1º Grau", minXp: 36000, color: "#8B4513" },
+        { name: "Faixa Marrom 2º Grau", minXp: 42000, color: "#8B4513" },
+        { name: "Faixa Marrom 3º Grau", minXp: 48000, color: "#8B4513" },
+        { name: "Faixa Marrom 4º Grau", minXp: 54000, color: "#8B4513" },
+
+        // PRETA (60.000 - 99.999) - Steps 8.000
+        { name: "Faixa Preta", minXp: 60000, color: "#343a40" },
+        { name: "Faixa Preta 1º Grau", minXp: 68000, color: "#343a40" },
+        { name: "Faixa Preta 2º Grau", minXp: 76000, color: "#343a40" },
+        { name: "Faixa Preta 3º Grau", minXp: 84000, color: "#343a40" },
+        { name: "Faixa Preta 4º Grau", minXp: 92000, color: "#343a40" },
+
+        // CORAL (100.000+) - Final
+        { name: "Faixa Coral", minXp: 100000, color: "#ff4500" }
     ];
 
-    // --- INIT ---
+    // --- INIT & MIGRATION ---
     function init() {
         const storedData = localStorage.getItem('protocolo1data');
         if (storedData) data = JSON.parse(storedData);
+        
+        data.forEach(skill => {
+            if (skill.totalXp === undefined) {
+                skill.totalXp = skill.competences ? skill.competences.reduce((acc, c) => acc + (c.xp || 0), 0) : 0;
+            }
+        });
         
         const storedStreak = localStorage.getItem('protocolo1streak');
         if (storedStreak) streak = JSON.parse(storedStreak);
@@ -364,7 +399,9 @@
             if (activeTimer) resumeTimerUI(); 
         }
 
+        checkChallengeExpiry();
         checkStreakIntegrity();
+        saveAll();
         render();
         updateStreakDisplay();
     }
@@ -389,30 +426,55 @@
         return rankList[0];
     }
 
-    // --- ACTIONS: TASKS & CHALLENGES ---
+    // CENTRALIZED XP FUNCTION
+    function addXpToSystem(skillId, compId, amount) {
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+        comp.xp = Math.max(0, comp.xp + amount);
+        skill.totalXp = Math.max(0, (skill.totalXp || 0) + amount);
+    }
 
+    // --- CHALLENGE EXPIRY ---
+    function checkChallengeExpiry() {
+        const now = Date.now();
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+        let changed = false;
+
+        data.forEach(skill => {
+            skill.competences.forEach(comp => {
+                if (comp.activeChallenge) {
+                    if (!comp.activeChallenge.timestamp) {
+                        comp.activeChallenge.timestamp = new Date(comp.activeChallenge.date).getTime();
+                    }
+                    const deadline = comp.activeChallenge.timestamp + THREE_DAYS_MS;
+                    if (now > deadline) {
+                        comp.history.push({
+                            type: 'challenge_expired', task: comp.activeChallenge.desc, xp: -1, status: 'expired', date: new Date().toISOString()
+                        });
+                        addXpToSystem(skill.id, comp.id, -1);
+                        comp.activeChallenge = null;
+                        changed = true;
+                    }
+                }
+            });
+        });
+        if(changed) alert("Desafios expirados foram removidos (-1 XP).");
+    }
+
+    // --- ACTIONS ---
     function openCreateActionModal(skillId, compId, type) {
         document.getElementById('targetSkillId').value = skillId;
         document.getElementById('targetCompId').value = compId;
         document.getElementById('taskType').value = type;
         document.getElementById('newTaskDesc').value = '';
-        
         const label = document.getElementById('modalTaskLabel');
         const warning = document.getElementById('challengeWarning');
         const modalTitle = document.querySelector('#createTaskModal .modal-title');
-
         if (type === 'task') {
-            modalTitle.innerText = "Nova Tarefa de Foco";
-            label.innerText = "O que você vai estudar/praticar?";
-            warning.classList.add('d-none');
-            document.getElementById('newTaskDesc').placeholder = "Ex: Ler 10 páginas...";
+            modalTitle.innerText = "Nova Tarefa de Foco"; label.innerText = "O que estudar/praticar?"; warning.classList.add('d-none');
         } else {
-            modalTitle.innerText = "Novo Desafio (Disciplina)";
-            label.innerText = "Qual é o desafio do dia?";
-            warning.classList.remove('d-none');
-            document.getElementById('newTaskDesc').placeholder = "Ex: Sem açúcar por 24h...";
+            modalTitle.innerText = "Novo Desafio"; label.innerText = "Qual o desafio?"; warning.classList.remove('d-none');
         }
-        
         new bootstrap.Modal(document.getElementById('createTaskModal')).show();
     }
 
@@ -421,28 +483,55 @@
         const compId = parseInt(document.getElementById('targetCompId').value);
         const type = document.getElementById('taskType').value;
         const desc = document.getElementById('newTaskDesc').value;
-
         if(!desc) return alert("Descrição obrigatória.");
 
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
-
         const today = getLocalDayKey();
+        const nowMs = Date.now();
 
-        if (type === 'task') {
-            comp.activeTask = { desc: desc, date: today };
-        } else {
-            comp.activeChallenge = { desc: desc, date: today };
-        }
+        if (type === 'task') comp.activeTask = { desc: desc, date: today };
+        else comp.activeChallenge = { desc: desc, date: today, timestamp: nowMs };
 
         bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
-        saveAll();
-        render();
+        saveAll(); render();
     }
 
-    // --- TIMER LOGIC (TASKS) ---
+    // --- MATERIAL ---
+    function openMaterialModal(skillId, compId) {
+        document.getElementById('matSkillId').value = skillId;
+        document.getElementById('matCompId').value = compId;
+        document.getElementById('matTitle').value = '';
+        document.getElementById('matMetric').value = '';
+        new bootstrap.Modal(document.getElementById('materialModal')).show();
+    }
+
+    function commitMaterial() {
+        const skillId = parseInt(document.getElementById('matSkillId').value);
+        const compId = parseInt(document.getElementById('matCompId').value);
+        const type = document.getElementById('matType').value;
+        const title = document.getElementById('matTitle').value;
+        const metric = document.getElementById('matMetric').value;
+
+        if (!title || !metric) return alert("Preencha tudo.");
+        const xpReward = 50;
+
+        const skill = data.find(s => s.id === skillId);
+        const comp = skill.competences.find(c => c.id === compId);
+
+        comp.history.push({
+            type: 'material', task: `Concluiu ${type}: ${title} (${metric})`, xp: xpReward, date: new Date().toISOString(), completionDate: getLocalDayKey()
+        });
+
+        addXpToSystem(skillId, compId, xpReward);
+        updateStreakOnFinish();
+        bootstrap.Modal.getInstance(document.getElementById('materialModal')).hide();
+        saveAll(); render(); triggerConfettiMajor(); setTimeout(() => alert(`+${xpReward} XP!`), 300);
+    }
+
+    // --- TIMER ---
     function openDurationModal(skillId, compId) {
-        if (activeTimer) return alert("Já existe um cronômetro rodando.");
+        if (activeTimer) return alert("Cronômetro em uso.");
         document.getElementById('targetSkillId').value = skillId;
         document.getElementById('targetCompId').value = compId;
         new bootstrap.Modal(document.getElementById('durationModal')).show();
@@ -457,18 +546,9 @@
         bootstrap.Modal.getInstance(document.getElementById('durationModal')).hide();
 
         activeTimer = {
-            skillId, compId,
-            taskName: comp.activeTask.desc,
-            durationTotal: minutes * 60,
-            remaining: minutes * 60,
-            xpReward,
-            status: 'running',
-            lastTick: Date.now()
+            skillId, compId, taskName: comp.activeTask.desc, durationTotal: minutes * 60, remaining: minutes * 60, xpReward, status: 'running', lastTick: Date.now()
         };
-
-        saveAll();
-        resumeTimerUI();
-        render();
+        saveAll(); resumeTimerUI(); render();
     }
 
     function resumeTimerUI() {
@@ -477,7 +557,7 @@
         updateTimerDisplay();
         if (activeTimer.status === 'running') startInterval();
         else {
-            document.getElementById('btnPause').innerHTML = '<i class="bi bi-play-fill"></i> Continuar';
+            document.getElementById('btnPause').innerHTML = 'Continuar';
             document.getElementById('timerDisplay').classList.remove('pulse-red');
         }
     }
@@ -485,21 +565,18 @@
     function startInterval() {
         if (timerInterval) clearInterval(timerInterval);
         activeTimer.lastTick = Date.now();
-        document.getElementById('btnPause').innerHTML = '<i class="bi bi-pause-fill"></i> Pausar';
+        document.getElementById('btnPause').innerHTML = 'Pausar';
         document.getElementById('timerDisplay').classList.remove('pulse-red');
 
         timerInterval = setInterval(() => {
             const now = Date.now();
             const delta = (now - activeTimer.lastTick) / 1000;
             activeTimer.lastTick = now;
-
             if (activeTimer.remaining > 0) {
                 activeTimer.remaining -= delta;
                 updateTimerDisplay();
                 if (Math.floor(activeTimer.remaining) % 5 === 0) saveAll();
-            } else {
-                finishTimerSuccess();
-            }
+            } else finishTimerSuccess();
         }, 1000);
     }
 
@@ -508,15 +585,14 @@
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = (seconds % 60).toString().padStart(2, '0');
         document.getElementById('timerDisplay').innerText = `${m}:${s}`;
-        const percent = (activeTimer.remaining / activeTimer.durationTotal) * 100;
-        document.getElementById('timerProgressBar').style.width = `${percent}%`;
+        document.getElementById('timerProgressBar').style.width = `${(activeTimer.remaining / activeTimer.durationTotal) * 100}%`;
     }
 
     function togglePauseTimer() {
         if (activeTimer.status === 'running') {
             clearInterval(timerInterval);
             activeTimer.status = 'paused';
-            document.getElementById('btnPause').innerHTML = '<i class="bi bi-play-fill"></i> Continuar';
+            document.getElementById('btnPause').innerHTML = 'Continuar';
             document.getElementById('timerDisplay').classList.add('pulse-red');
         } else {
             activeTimer.status = 'running';
@@ -527,7 +603,7 @@
     }
 
     function cancelTimer() {
-        if(!confirm("Desistir? Nenhum XP será ganho.")) return;
+        if(!confirm("Desistir?")) return;
         clearInterval(timerInterval);
         activeTimer = null;
         saveAll();
@@ -539,182 +615,116 @@
         clearInterval(timerInterval);
         const skill = data.find(s => s.id === activeTimer.skillId);
         const comp = skill.competences.find(c => c.id === activeTimer.compId);
-        const xp = activeTimer.xpReward;
-
+        
         comp.history.push({
-            type: 'task',
-            task: activeTimer.taskName,
-            xp: xp,
-            date: new Date().toISOString(),
-            completionDate: getLocalDayKey()
+            type: 'task', task: activeTimer.taskName, xp: activeTimer.xpReward, date: new Date().toISOString(), completionDate: getLocalDayKey()
         });
 
-        comp.xp += xp;
+        addXpToSystem(activeTimer.skillId, activeTimer.compId, activeTimer.xpReward);
         comp.activeTask = null;
         updateStreakOnFinish();
-        
         activeTimer = null;
         saveAll();
         bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide();
-        render();
-
-        triggerConfettiMinor();
-        setTimeout(() => alert(`+${xp} XP! Tarefa concluída.`), 500);
+        render(); triggerConfettiMinor(); setTimeout(() => alert("Concluído!"), 500);
     }
 
-    // --- CHALLENGE LOGIC ---
+    // --- CHALLENGE ---
     function resolveChallenge(skillId, compId, success) {
+        const xp = success ? 2 : -1;
+        if (!success && !confirm("Declarar falha? -1 XP.")) return;
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
-        const xp = success ? 1 : -1;
-
-        if (!success && !confirm("Declarar falha? Você perderá 1 XP.")) return;
-
         comp.history.push({
-            type: 'challenge',
-            task: comp.activeChallenge.desc,
-            xp: xp,
-            status: success ? 'success' : 'failed',
-            date: new Date().toISOString(),
-            completionDate: getLocalDayKey()
+            type: 'challenge', task: comp.activeChallenge.desc, xp: xp, status: success ? 'success' : 'failed', date: new Date().toISOString(), completionDate: getLocalDayKey()
         });
-
-        comp.xp = Math.max(0, comp.xp + xp);
+        addXpToSystem(skillId, compId, xp);
         comp.activeChallenge = null;
-
         if (success) updateStreakOnFinish();
-        
-        saveAll();
-        render();
-
-        if (success) triggerConfettiMinor();
+        saveAll(); render(); if (success) triggerConfettiMinor();
     }
 
     function cancelTask(skillId, compId) {
-        if(!confirm("Remover esta tarefa pendente?")) return;
+        if(!confirm("Remover?")) return;
         const skill = data.find(s => s.id === skillId);
         const comp = skill.competences.find(c => c.id === compId);
-        comp.activeTask = null;
-        saveAll();
-        render();
+        comp.activeTask = null; saveAll(); render();
     }
 
-    // --- UTILS & RANK MODAL ---
+    // --- UTILS ---
+    function openSkillModal() { new bootstrap.Modal(document.getElementById('skillModal')).show(); }
+    function openCompModal(skillId) { document.getElementById('currentSkillId').value = skillId; new bootstrap.Modal(document.getElementById('compModal')).show(); }
     function showRankInfo() {
-        const tbody = document.getElementById('rankTableBody');
-        tbody.innerHTML = '';
-        SKILL_RANKS.forEach(r => {
-            tbody.innerHTML += `
-                <tr>
-                    <td><span class="badge" style="background-color:${r.color}; color: ${r.color === '#f8f9fa' ? '#000' : '#fff'}">${r.name}</span></td>
-                    <td>${r.minXp.toLocaleString()} XP</td>
-                </tr>
-            `;
-        });
+        const tbody = document.getElementById('rankTableBody'); tbody.innerHTML = '';
+        SKILL_RANKS.forEach(r => tbody.innerHTML += `<tr><td><span class="badge" style="background-color:${r.color}; color:${r.color==='#f8f9fa'?'#000':'#fff'}">${r.name}</span></td><td class="text-end">${r.minXp.toLocaleString()} XP</td></tr>`);
         new bootstrap.Modal(document.getElementById('rankInfoModal')).show();
     }
-
-    // --- FUNÇÕES QUE FALTAVAM (Adicione isto ao seu script) ---
-
-    function openSkillModal() {
-        new bootstrap.Modal(document.getElementById('skillModal')).show();
-    }
-
-    function openCompModal(skillId) {
-        document.getElementById('currentSkillId').value = skillId;
-        new bootstrap.Modal(document.getElementById('compModal')).show();
-    }
-
-    // ---------------------------------------------------------
-
-    // --- CRUD ---
+    
     function addSkill() {
-        const name = document.getElementById('skillNameInput').value;
-        if (!name) return;
-        data.push({ id: Date.now(), name: name, competences: [] });
+        const name = document.getElementById('skillNameInput').value; if(!name) return;
+        data.push({ id: Date.now(), name: name, competences: [], totalXp: 0 });
         document.getElementById('skillNameInput').value = '';
-        bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide();
-        saveAll(); render();
+        bootstrap.Modal.getInstance(document.getElementById('skillModal')).hide(); saveAll(); render();
     }
 
     function addCompetence() {
         const skillId = parseInt(document.getElementById('currentSkillId').value);
-        const name = document.getElementById('compNameInput').value;
-        if (!name) return;
+        const name = document.getElementById('compNameInput').value; if(!name) return;
         const skill = data.find(s => s.id === skillId);
         skill.competences.push({ id: Date.now(), name: name, xp: 0, history: [], activeTask: null, activeChallenge: null });
         document.getElementById('compNameInput').value = '';
-        bootstrap.Modal.getInstance(document.getElementById('compModal')).hide();
-        saveAll(); render();
+        bootstrap.Modal.getInstance(document.getElementById('compModal')).hide(); saveAll(); render();
     }
 
     function deleteSkill(id) { if(confirm("Apagar Área?")) { data = data.filter(s => s.id !== id); saveAll(); render(); } }
+    
     function deleteComp(skillId, compId) {
-        if(confirm("Apagar Competência?")) {
+        if(confirm("Apagar Competência? XP da Habilidade mantido.")) {
             const skill = data.find(s => s.id === skillId);
             skill.competences = skill.competences.filter(c => c.id !== compId);
             saveAll(); render();
         }
     }
 
-    // --- STREAK & BACKUP ---
     function checkStreakIntegrity() {
-        const today = getLocalDayKey();
-        const yesterday = getLocalDayKey(-1);
+        const today = getLocalDayKey(); const yesterday = getLocalDayKey(-1);
         if (!streak.lastDate) return;
-        if (streak.lastDate !== today && streak.lastDate !== yesterday) {
-            streak.count = 0; saveAll();
-        }
+        if (streak.lastDate !== today && streak.lastDate !== yesterday) { streak.count = 0; saveAll(); }
     }
-
     function updateStreakOnFinish() {
-        const today = getLocalDayKey();
-        const yesterday = getLocalDayKey(-1);
+        const today = getLocalDayKey(); const yesterday = getLocalDayKey(-1);
         if (streak.lastDate === today) return;
-        if (streak.lastDate === yesterday) streak.count++;
-        else streak.count = 1;
-        streak.lastDate = today;
-        saveAll(); updateStreakDisplay();
+        if (streak.lastDate === yesterday) streak.count++; else streak.count = 1;
+        streak.lastDate = today; saveAll(); updateStreakDisplay();
     }
-
     function updateStreakDisplay() {
         const el = document.getElementById('streakDisplay');
         document.getElementById('streakCount').innerText = streak.count;
-        if (streak.count > 0) el.classList.remove('streak-broken');
-        else el.classList.add('streak-broken');
+        if (streak.count > 0) el.classList.remove('streak-broken'); else el.classList.add('streak-broken');
     }
-
     function exportData() {
-        if (data.length === 0) return alert("Nada para exportar.");
-        const blob = new Blob([JSON.stringify({ version: "v9.0", skills: data, streak: streak }, null, 2)], { type: "application/json" });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `protocolo_v9_${getLocalDayKey()}.json`;
+        if (data.length === 0) return alert("Nada.");
+        const blob = new Blob([JSON.stringify({ version: "v11.0", skills: data, streak: streak }, null, 2)], { type: "application/json" });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `protocolo_v11_${getLocalDayKey()}.json`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
-    
     function importData(input) {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const json = JSON.parse(e.target.result);
-                if(json.skills) { data = json.skills; streak = json.streak || {count:0}; }
-                else { data = json; }
-                saveAll(); render(); updateStreakDisplay(); alert("Importado!");
+                if(json.skills) { data = json.skills; streak = json.streak || {count:0}; } else { data = json; }
+                saveAll(); init(); alert("Importado!");
             } catch(err) { alert("Erro."); }
-        };
-        reader.readAsText(file);
+        }; reader.readAsText(file);
     }
-
     function openHistoryModal() {
-        const list = document.getElementById('historyList');
-        list.innerHTML = '';
-        let allHistory = [];
+        const list = document.getElementById('historyList'); list.innerHTML = ''; let allHistory = [];
         data.forEach(skill => {
             if(skill.competences) skill.competences.forEach(comp => {
                 if(comp.history) comp.history.forEach(entry => {
-                    allHistory.push({
-                        skillName: skill.name, compName: comp.name, task: entry.task, xp: entry.xp, date: entry.timestamp || entry.date, type: entry.type || 'task'
-                    });
+                    allHistory.push({ skillName: skill.name, compName: comp.name, task: entry.task, xp: entry.xp, date: entry.timestamp || entry.date, type: entry.type });
                 });
             });
         });
@@ -722,16 +732,20 @@
         allHistory.slice(0, 50).forEach(h => {
             const date = new Date(h.date).toLocaleDateString();
             const color = h.xp > 0 ? 'text-success' : 'text-danger';
-            const icon = h.type === 'challenge' ? '<i class="bi bi-lightning-fill text-warning"></i>' : '<i class="bi bi-clock text-primary"></i>';
-            list.innerHTML += `<li class="list-group-item d-flex justify-content-between">
-                <div>${icon} <small class="text-muted">${date}</small> <br> ${h.task}</div>
-                <div class="${color} fw-bold">${h.xp > 0 ? '+' : ''}${h.xp} XP</div>
-            </li>`;
+            let icon = '<i class="bi bi-circle"></i>';
+            if(h.type === 'task') icon = '<i class="bi bi-clock text-primary"></i>';
+            if(h.type === 'challenge') icon = '<i class="bi bi-lightning-fill text-warning"></i>';
+            if(h.type === 'material') icon = '<i class="bi bi-book-half text-danger"></i>';
+            if(h.type === 'challenge_expired') icon = '<i class="bi bi-alarm text-secondary"></i>';
+            list.innerHTML += `<li class="list-group-item d-flex justify-content-between"><div>${icon} <small class="text-muted">${date}</small><br>${h.task}</div><div class="${color} fw-bold">${h.xp>0?'+':''}${h.xp} XP</div></li>`;
         });
         new bootstrap.Modal(document.getElementById('historyModal')).show();
     }
-
     function triggerConfettiMinor() { confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 }, colors: ['#0d6efd', '#fff'] }); }
+    function triggerConfettiMajor() {
+        const end = Date.now() + 2000;
+        (function frame() { confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffd700'] }); confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffd700'] }); if (Date.now() < end) requestAnimationFrame(frame); }());
+    }
 
     // --- RENDER ---
     function render() {
@@ -739,72 +753,56 @@
         container.innerHTML = '';
         const todayKey = getLocalDayKey();
         const isTimerRunning = activeTimer !== null;
+        const now = Date.now();
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
         if (data.length === 0) {
-            container.innerHTML = `<div class="text-center text-muted mt-5 opacity-50"><i class="bi bi-clipboard-data fs-1"></i><p class="mt-2">Sem dados.</p></div>`;
-            return;
+            container.innerHTML = `<div class="text-center text-muted mt-5 opacity-50"><i class="bi bi-clipboard-data fs-1"></i><p class="mt-2">Comece.</p></div>`; return;
         }
 
         data.forEach(skill => {
-            const totalSkillXp = skill.competences ? skill.competences.reduce((acc, curr) => acc + (curr.xp || 0), 0) : 0;
-            const skillRank = getRank(totalSkillXp, SKILL_RANKS);
+            const skillTotalXp = skill.totalXp || 0;
+            const skillRank = getRank(skillTotalXp, SKILL_RANKS);
             let compsHtml = '';
 
             if (skill.competences && skill.competences.length > 0) {
                 skill.competences.forEach(comp => {
                     const rank = getRank(comp.xp, COMP_RANKS);
                     const borderClass = rank.minXp >= 10000 ? 'rank-up-anim' : '';
-
-                    // CHECK HISTORY FOR TODAY
-                    // Task Done Today?
                     const taskDone = comp.history.some(h => (h.type === 'task' || !h.type) && h.completionDate === todayKey);
-                    // Challenge Done Today?
                     const challengeDone = comp.history.some(h => h.type === 'challenge' && h.completionDate === todayKey);
 
-                    // --- TASK SLOT HTML ---
+                    // --- TASK ---
                     let taskHtml = '';
-                    if (taskDone) {
-                        taskHtml = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 mb-3"><i class="bi bi-check-circle-fill"></i> Foco Diário Feito</button>`;
-                    } else if (comp.activeTask) {
+                    if (taskDone) taskHtml = `<button class="btn btn-outline-success btn-sm w-100 disabled border-0 mb-3"><i class="bi bi-check-circle-fill"></i> Feito</button>`;
+                    else if (comp.activeTask) {
                         const btnState = isTimerRunning ? 'disabled' : '';
-                        const btnLabel = isTimerRunning ? 'Aguarde...' : '<i class="bi bi-play-fill"></i> Iniciar';
-                        taskHtml = `
-                            <div class="pending-task-box">
-                                <div class="small text-muted mb-1">FOCO</div>
-                                <div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-primary btn-sm flex-grow-1" onclick="openDurationModal(${skill.id}, ${comp.id})" ${btnState}>${btnLabel}</button>
-                                    <button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})" ${btnState}><i class="bi bi-trash"></i></button>
-                                </div>
-                            </div>`;
-                    } else {
-                        taskHtml = `<button class="btn btn-outline-primary btn-sm w-100 mb-3" onclick="openCreateActionModal(${skill.id}, ${comp.id}, 'task')"><i class="bi bi-plus-circle"></i> Tarefa Foco (+XP)</button>`;
-                    }
+                        const btnLabel = isTimerRunning ? '...' : 'Iniciar';
+                        taskHtml = `<div class="pending-task-box"><div class="small text-muted mb-1">FOCO</div><div class="fst-italic mb-2 text-white small">"${comp.activeTask.desc}"</div><div class="d-flex gap-2"><button class="btn btn-primary btn-sm flex-grow-1" onclick="openDurationModal(${skill.id}, ${comp.id})" ${btnState}>${btnLabel}</button><button class="btn btn-outline-danger btn-sm" onclick="cancelTask(${skill.id}, ${comp.id})" ${btnState}><i class="bi bi-trash"></i></button></div></div>`;
+                    } else taskHtml = `<button class="btn btn-outline-primary btn-sm w-100 mb-3" onclick="openCreateActionModal(${skill.id}, ${comp.id}, 'task')">Tarefa Foco</button>`;
 
-                    // --- CHALLENGE SLOT HTML ---
+                    // --- CHALLENGE ---
                     let challengeHtml = '';
-                    if (challengeDone) {
-                        challengeHtml = `<button class="btn btn-outline-secondary btn-sm w-100 disabled border-0"><i class="bi bi-flag-fill"></i> Desafio Encerrado</button>`;
-                    } else if (comp.activeChallenge) {
-                        challengeHtml = `
-                            <div class="pending-challenge-box">
-                                <div class="small text-muted mb-1" style="color: #a77dff !important;">DESAFIO</div>
-                                <div class="fst-italic mb-2 text-white small">"${comp.activeChallenge.desc}"</div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-success btn-sm flex-grow-1" onclick="resolveChallenge(${skill.id}, ${comp.id}, true)"><i class="bi bi-check-lg"></i></button>
-                                    <button class="btn btn-danger btn-sm flex-grow-1" onclick="resolveChallenge(${skill.id}, ${comp.id}, false)"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                            </div>`;
-                    } else {
-                        challengeHtml = `<button class="btn btn-outline-light btn-sm w-100" style="border-color: #666;" onclick="openCreateActionModal(${skill.id}, ${comp.id}, 'challenge')"><i class="bi bi-lightning-charge"></i> Desafio (Hard)</button>`;
-                    }
+                    if (challengeDone) challengeHtml = `<button class="btn btn-outline-secondary btn-sm w-100 disabled border-0"><i class="bi bi-flag-fill"></i> Desafio OK</button>`;
+                    else if (comp.activeChallenge) {
+                        const createdAt = comp.activeChallenge.timestamp || new Date(comp.activeChallenge.date).getTime();
+                        const deadline = createdAt + THREE_DAYS_MS;
+                        const hoursLeft = Math.max(0, Math.floor((deadline - now) / (1000 * 60 * 60)));
+                        let expiryClass = "text-muted";
+                        if(hoursLeft < 24) expiryClass = "expiry-warning";
+                        if(hoursLeft < 6) expiryClass = "expiry-danger";
+                        challengeHtml = `<div class="pending-challenge-box"><div class="d-flex justify-content-between"><span class="small" style="color:#a77dff;">DESAFIO</span><span class="${expiryClass}">${hoursLeft}h restam</span></div><div class="fst-italic mb-2 text-white small">"${comp.activeChallenge.desc}"</div><div class="d-flex gap-2"><button class="btn btn-success btn-sm flex-grow-1" onclick="resolveChallenge(${skill.id}, ${comp.id}, true)"><i class="bi bi-check-lg"></i></button><button class="btn btn-danger btn-sm flex-grow-1" onclick="resolveChallenge(${skill.id}, ${comp.id}, false)"><i class="bi bi-x-lg"></i></button></div></div>`;
+                    } else challengeHtml = `<button class="btn btn-outline-light btn-sm w-100" style="border-color:#666;" onclick="openCreateActionModal(${skill.id}, ${comp.id}, 'challenge')">Desafio</button>`;
 
                     compsHtml += `
                     <div class="col-md-6 col-lg-4" data-id="${comp.id}">
                         <div class="card p-3 h-100 ${borderClass}">
                             <div class="d-flex justify-content-between mb-2">
                                 <h5 class="fw-bold mb-0 text-white text-truncate">${comp.name}</h5>
-                                <i class="bi bi-trash text-secondary small" style="cursor:pointer" onclick="deleteComp(${skill.id}, ${comp.id})"></i>
+                                <div>
+                                    <i class="bi bi-journal-plus text-secondary small me-2" style="cursor:pointer" onclick="openMaterialModal(${skill.id}, ${comp.id})" title="Registrar Livro/Curso"></i>
+                                    <i class="bi bi-trash text-secondary small" style="cursor:pointer" onclick="deleteComp(${skill.id}, ${comp.id})"></i>
+                                </div>
                             </div>
                             <div class="d-flex align-items-center mb-3">
                                 <i class="${rank.icon} me-2 fs-4" style="color:${rank.color}"></i>
@@ -817,9 +815,7 @@
                         </div>
                     </div>`;
                 });
-            } else {
-                compsHtml = `<div class="col-12 text-muted small">Adicione competências.</div>`;
-            }
+            } else compsHtml = `<div class="col-12 text-muted small">Adicione competências.</div>`;
 
             container.innerHTML += `
             <div class="mb-5 fade-in">
@@ -827,11 +823,8 @@
                     <h3 class="m-0 text-white fw-light fs-4">${skill.name}</h3>
                     <i class="bi bi-info-circle text-muted ms-2" style="cursor:pointer; font-size:0.9rem" onclick="showRankInfo()"></i>
                     <span class="rank-badge-skill ms-2" style="color:${skillRank.color}; border-color:${skillRank.color}">${skillRank.name}</span>
-                    <span class="ms-auto text-secondary small me-3">${totalSkillXp} XP</span>
-                    <div>
-                        <button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i></button>
-                        <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button>
-                    </div>
+                    <span class="ms-auto text-secondary small me-3">${skillTotalXp} XP (Total)</span>
+                    <div><button class="btn btn-sm btn-dark border-secondary me-1" onclick="openCompModal(${skill.id})"><i class="bi bi-plus"></i></button><button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSkill(${skill.id})"><i class="bi bi-trash"></i></button></div>
                 </div>
                 <div class="row g-3 sortable-list" id="sortable-skill-${skill.id}">${compsHtml}</div>
             </div>`;
@@ -842,11 +835,7 @@
             if(el) new Sortable(el, { animation: 150, ghostClass: 'sortable-ghost', handle: '.card', onEnd: (evt) => {
                 const newOrderIds = Array.from(evt.to.children).map(i => parseInt(i.getAttribute('data-id')));
                 const s = data.find(x => x.id === skill.id);
-                if(s) {
-                    const map = new Map(s.competences.map(c => [c.id, c]));
-                    s.competences = newOrderIds.map(id => map.get(id)).filter(c => c);
-                    saveAll();
-                }
+                if(s) { const map = new Map(s.competences.map(c => [c.id, c])); s.competences = newOrderIds.map(id => map.get(id)).filter(c => c); saveAll(); }
             }});
         });
     }
